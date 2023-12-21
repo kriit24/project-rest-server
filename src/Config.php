@@ -1,6 +1,6 @@
 <?php
 
-namespace Project\ProjectRestServer;
+namespace Project\RestServer;
 
 class Config
 {
@@ -9,6 +9,7 @@ class Config
      * [
      * 'auth.hash.key' => '',
      * 'database.connections.CHANNEL_NAME' => '',
+     * 'app.model.dir' => '/models url full path',
      * ]
      */
 
@@ -22,27 +23,26 @@ class Config
 
     public static function model($name = null, $default = null)
     {
-
-        $alias = ['object' => 'objectT'];
+        $dir = config('app.model.dir');
+        $namespace = config('app.model.namespace');
+        $alias = config('app.model.alias');
         if (isset($alias[$name]))
             $name = $alias[$name];
 
         if ($name) {
 
-            $dir = dirname(__DIR__) . '/app/Models/';
             $file = $name . '.php';
 
-            if (is_file($dir . $file)) {
+            if (is_file($dir . '/' . $file)) {
 
-                return '\App\Models\\' . $name;
+                return $namespace . '\\' . $name;
             }
             return $default;
         }
 
         //app/models/class
-        $dir = dirname(__DIR__) . '/app/Models/';
         $filterMask = '*.php';
-        $files = glob($dir . $filterMask, GLOB_BRACE);
+        $files = glob($dir . '/' . $filterMask, GLOB_BRACE);
         $ret = [];
         foreach ($files as $file) {
 
@@ -50,7 +50,7 @@ class Config
 
             if (!in_array(strtolower($pathinfo['filename']), ['sql', 'mongo'])) {
 
-                $ret[] = '\App\Models\\' . $pathinfo['filename'];
+                $ret[] = $namespace . '\\' . $pathinfo['filename'];
             }
         }
 

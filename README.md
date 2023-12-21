@@ -1,3 +1,16 @@
+# project-rest-server
+Project Rest Server is REST-api server for mysql  
+Its based on Laravel 10 framework
+
+## Installation
+This project using composer.
+```
+$ composer require kriit24/project-rest-server
+```
+
+## Usage
+
+```php
 <?php
 
 //route/api.php
@@ -5,7 +18,7 @@ $config = [
     //128 AES key
     //u can generate key - \App\Component\Crypto::generateKey()
     'auth.hash.key' => '',
-    'database.connections.arikonto' => config('database.connections.mysql'),
+    'database.connections.CHANNEL_NAME' => config('database.connections.mysql'),
     'app.model.dir' => dirname(__DIR__) . '/app/Models',
     'app.model.namespace' => '\App\Models',
     'app.model.alias' => ['object' => 'objectT'],
@@ -90,6 +103,8 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class])->
 
     if (env('APP_DEBUG')) {
 
+        //u can generate mac key for testing purposes
         Route::post('/mac/gen', [\Project\RestServer\Http\Controllers\IndexController::class, 'MacGen']);
     }
 });
+```

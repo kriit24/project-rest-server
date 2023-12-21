@@ -14,5 +14,6 @@
             "name": "Kuno Vaik"
         }
     ],
+    "minimum-stability": "dev",
     "require": {}
 }

@@ -1,6 +1,7 @@
 {
     "name": "kriit24/project-rest-server",
     "description": "Laravel REST-API server",
+    "version": "v1.0.0",
     "type": "library",
     "license": "MIT",
     "autoload": {
@@ -10,8 +11,7 @@
     },
     "authors": [
         {
-            "name": "critic",
-            "email": "kuno@projectpartner.ee"
+            "name": "Kuno Vaik"
         }
     ],
     "require": {}

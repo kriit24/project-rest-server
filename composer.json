@@ -1,5 +1,5 @@
 {
-    "name": "project/project-rest-server",
+    "name": "kriit24/project-rest-server",
     "description": "Laravel REST-API server",
     "type": "library",
     "license": "MIT",

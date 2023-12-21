@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Project\\ProjectRestServer\\": "src/"
+            "Project\\RestServer\\": "src/"
         }
     },
     "authors": [

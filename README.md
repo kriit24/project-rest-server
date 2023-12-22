@@ -24,6 +24,7 @@ $config = [
     'database.connections.CHANNEL_NAME' => config('database.connections.mysql'),
     'app.model.dir' => dirname(__DIR__) . '/app/Models',
     'app.model.namespace' => '\App\Models',
+    //table to class name alias, lets say table is object, but in php u cannot make class object, so u add an alias objectT
     'app.model.alias' => ['object' => 'objectT'],
 ];
 Project\RestServer\Config::set($config);

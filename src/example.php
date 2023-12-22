@@ -6,9 +6,6 @@ Route::middleware([\App\Http\Middleware\Authenticate::class, \App\Http\Middlewar
     //make insert request
     Route::post('/post/{db}/{model}', function ($db, $model, Request $request) {
 
-        //FOR TESTING
-        return response(['status' => 'ok', 'count' => !empty([]) ? 1 : 0, 'data' => []]);
-
         if (\App\Http\Requests\ValidateRequest::Broadcast($db, $model, $request)) {
 
             $event = new \App\Broadcasting\DBBroadcast(
@@ -24,9 +21,6 @@ Route::middleware([\App\Http\Middleware\Authenticate::class, \App\Http\Middlewar
     //make update request
     Route::post('/put/{db}/{model}', function ($db, $model, Request $request) {
 
-        //FOR TESTING
-        return response(['status' => 'ok', 'count' => !empty([]) ? 1 : 0, 'data' => []]);
-
         if (\App\Http\Requests\ValidateRequest::Broadcast($db, $model, $request)) {
 
             $event = new \App\Broadcasting\DBBroadcast(
@@ -41,9 +35,6 @@ Route::middleware([\App\Http\Middleware\Authenticate::class, \App\Http\Middlewar
 
     //make delete request
     Route::post('/delete/{db}/{model}', function ($db, $model, Request $request) {
-
-        //FOR TESTING
-        return response(['status' => 'ok', 'count' => !empty([]) ? 1 : 0, 'data' => []]);
 
         if (\App\Http\Requests\ValidateRequest::Delete($db, $model, $request)) {
 

@@ -134,13 +134,11 @@ class MysqlGetter
             })
             ->cursor();
 
-
-        //return array_map(function($row){ return array_merge($row, ['trigger' => 'fetch']); }, $rows->toArray());
         return (function () use ($rows, $data, $relationShipColumns) {
 
             foreach ($rows as $row) {
 
-                $array = array_merge($row->toArray(), ['trigger' => 'fetch']);
+                $array = $row->toArray();
                 if (isset($data['join']) && !empty($data['join'])) {
 
                     foreach ($data['join'] as $with) {
@@ -157,12 +155,6 @@ class MysqlGetter
                             }
                             $array[$with] = $row;
                         }
-                        /*
-                        $array[$with] = isset($relationShipColumns[$with]) && !empty($relationShipColumns[$with]) ? array_filter($array[$with], function ($v, $k) use ($with, $relationShipColumns) {
-                            return in_array($k, $relationShipColumns[$with]) || is_array($v);
-                        },
-                            ARRAY_FILTER_USE_BOTH) : $array[$with];
-                        */
                     }
                 }
 

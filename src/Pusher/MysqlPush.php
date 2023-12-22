@@ -45,8 +45,6 @@ class MysqlPush
             unset($data['_id']);
         if (isset($data['updated_at']))
             unset($data['updated_at']);
-        if (isset($data['trigger']))
-            unset($data['trigger']);
 
         //pre($data);
 
@@ -159,6 +157,6 @@ class MysqlPush
 
         $data[$primaryKey] = $d[0]->$primaryKey;
 
-        return array_merge($data, ['trigger' => 'upsert']);
+        return $data;
     }
 }

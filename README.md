@@ -10,6 +10,12 @@ $ composer require kriit24/project-rest-server
 
 ## Clients for this server  
 #### [react-native](https://www.npmjs.com/package/project-rest-client)
+#### php client coming soon
+
+
+## NB!  
+All the requests are POST methods because GET queries can distort data like umlauts and other special characters  
+If u use json_encode to compile data then allways use it with option JSON_UNESCAPED_UNICODE
 
 ## Usage
 
@@ -122,13 +128,20 @@ curl -X POST
 -H "Content-Type: application/json"
 -H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
 -d '{"column":null,"join":null,"use":null,"where":null,"group":null,"order":null,"limit":null,"offset":null}'
-https://arikonto.projectpartner.ee/api/fetch/arikonto/loan_application
+https://your.api.domain/api/fetch/{database}/{model}
 ```  
   
 #### PARAMS
 ```php
 $params = [
-    'column' => ['column_1', 'column_2'],
+    //get all columns
+    'column' => null,
+    //get current columns
+    //'column' => ['column_1', 'column_2'],
+    //get all parent columns also "use" columns
+    //'column' => ['*'],
+    //get join columns 
+    //'column' => ['child_table.child_table_column', 'child_table_1.child_table_2.child_table_column'],
     //join sibling data 
     'join' => ['join_1', 'join_2'],
     //use query as query builder
@@ -142,3 +155,31 @@ $params = [
     'offset' => 10,
 ];
 ```
+
+### POST
+```
+curl -X POST 
+-H "Content-Type: application/json"
+-H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
+-d '{"column_name":value}'
+https://your.api.domain/api/post/{database}/{model}
+```  
+
+### PUT
+```
+curl -X POST 
+-H "Content-Type: application/json"
+-H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
+-d '{"primary_id":value,"column_name":value}'
+https://your.api.domain/api/put/{database}/{model}
+```  
+
+
+### DELETE
+```
+curl -X POST 
+-H "Content-Type: application/json"
+-H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
+-d '{"parimary_id":value,"column_name":value}'
+https://your.api.domain/api/delete/{database}/{model}
+``` 

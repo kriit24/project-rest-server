@@ -57,7 +57,7 @@ class MysqlDelete
                     new $dispatcher($data, $d);
                 }
 
-                return array_merge((array)$d[0], ['trigger' => 'delete']);
+                return (array)$d[0];
             }
         }
 

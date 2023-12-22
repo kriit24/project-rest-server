@@ -3,7 +3,7 @@
 //route/api.php
 $config = [
     //128 AES key
-    //u can generate key - \App\Component\Crypto::generateKey()
+    //u can generate key - Project\RestServer\Component\Crypto::generateKey()
     'auth.hash.key' => '',
     'database.connections.arikonto' => config('database.connections.mysql'),
     'app.model.dir' => dirname(__DIR__) . '/app/Models',

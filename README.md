@@ -19,7 +19,7 @@ $ composer require kriit24/project-rest-server
 //route/api.php
 $config = [
     //128 AES key
-    //u can generate key - \App\Component\Crypto::generateKey()
+    //u can generate key - Project\RestServer\Component\Crypto::generateKey()
     'auth.hash.key' => '',
     'database.connections.CHANNEL_NAME' => config('database.connections.mysql'),
     'app.model.dir' => dirname(__DIR__) . '/app/Models',

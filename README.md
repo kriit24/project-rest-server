@@ -112,3 +112,33 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class])->
     }
 });
 ```
+
+
+## QUERIES
+
+### FETCH  
+```
+curl -X POST 
+-H "Content-Type: application/json"
+-H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
+-d '{"column":null,"join":null,"use":null,"where":null,"group":null,"order":null,"limit":null,"offset":null}'
+https://arikonto.projectpartner.ee/api/fetch/arikonto/loan_application
+```  
+  
+#### PARAMS
+```php
+$params = [
+    'column' => ['column_1', 'column_2'],
+    //join sibling data 
+    'join' => ['join_1', 'join_2'],
+    //use query as query builder
+    'use' => ['use_1', 'use_2'],
+    //u can use operands line IN, NOT_IN AND RAW
+    //if operand is RAW then first argument is used as where statement
+    'where' => [['object_id', '=', 1], ['object_id BETWEEN 1 AND 2', 'RAW']],
+    'group' => ["object_id", "object_name"],
+    'order' => [["object_id", "DESC"], ["object_name", "ASC"]],
+    'limit' => 1,
+    'offset' => 10,
+];
+```

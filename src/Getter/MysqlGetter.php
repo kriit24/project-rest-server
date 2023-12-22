@@ -127,7 +127,7 @@ class MysqlGetter
             })
             ->when(isset($payload['header']['debug']), function ($q) {
 
-                die(pre(str_replace_array('?', array_map(function ($val) {
+                die(pre(\Str::replaceArray('?', array_map(function ($val) {
                     return is_object($val) || is_array($val) ? "'" . print_r($val, true) . "'" : "'" . $val . "'";
                 }, $q->getBindings()), $q->toSql()
                 )));

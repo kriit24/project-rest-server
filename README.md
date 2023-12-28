@@ -185,7 +185,7 @@ https://your.api.domain/api/post/{database}/{model}
 curl -X POST 
 -H "Content-Type: application/json"
 -H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
--d '{"set":{"column_name" : value},"where":["column_name", "=", "value"]]}'
+-d '{"set":{"column_name" : value},"where":[["column_name", "=", "value"]]}'
 https://your.api.domain/api/put/{database}/{model}
 ```
 

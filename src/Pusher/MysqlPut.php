@@ -5,7 +5,7 @@ namespace Project\RestServer\Pusher;
 use Project\RestServer\Models\Mysql;
 use \Illuminate\Support\Facades\Config;
 
-class MysqlPush
+class MysqlPut
 {
     public function __construct()
     {
@@ -40,7 +40,8 @@ class MysqlPush
             $dispatchesEvents = $reflectionProperty->getValue(new $class);
         }
 
-        $data = $payload['message'];
+        $where = $payload['message']['where'];
+        $data = $payload['message']['set'];
         if (isset($data['_id']))
             unset($data['_id']);
         if (isset($data['updated_at']))
@@ -63,17 +64,6 @@ class MysqlPush
 
             if ($dispatchesEvents) {
 
-                if (!isset($values[$primaryKey]) && isset($dispatchesEvents['inserting'])) {
-
-                    $dispatcher = $dispatchesEvents['inserting'];
-                    new $dispatcher($values);
-
-                    foreach ($fillable as $col) {
-
-                        if ((isset($values[$col]) || array_key_exists($col, $values)) && !in_array($col, $arrayColumns))
-                            $arrayColumns[] = $col;
-                    }
-                }
                 if (isset($values[$primaryKey]) && isset($dispatchesEvents['updating'])) {
 
                     $dispatcher = $dispatchesEvents['updating'];
@@ -88,7 +78,7 @@ class MysqlPush
             }
 
             $returnValues = [];
-            if( !empty($values) ) {
+            if (!empty($values)) {
 
                 foreach ($arrayColumns as $col) {
 
@@ -110,21 +100,6 @@ class MysqlPush
 
         })();
 
-        $sql = "
-            INSERT INTO `" . $table . "` (" . implode(',', $arrayColumns) . ")
-
-            VALUES (" . implode(',', array_map(function () {
-                return '?';
-            }, $arrayColumns)) . ")" .
-
-            " ON DUPLICATE KEY UPDATE " .
-
-            implode(',', array_map(function ($col) {
-                    return '`' . $col . '` = VALUES(`' . $col . '`)';
-                }, $arrayColumns)
-            )
-            . " RETURNING " . $primaryKey . "  ";
-
         if (isset($payload['header']['debug'])) {
 
             die(pre(\Str::replaceArray('?', array_map(function ($val) {
@@ -133,17 +108,24 @@ class MysqlPush
             )));
         }
 
-        if( !empty($arrayColumns) && !empty($bindings) ) {
+        if (!empty($arrayColumns) && !empty($bindings)) {
 
-            $d = Mysql::select($sql, $bindings);
+            $q = (new Mysql())
+                ->init(new $class())
+                ->when(1 == 1, function ($q) use ($where) {
+
+                    Mysql::whereArray($q, $where);
+                });
+
+            $q->update($data);
+            $rows = $q->select($primaryKey)->get();
+
+            $d = !empty($rows) ? array_map(function ($val) use ($primaryKey) {
+                return (object)[$primaryKey => $val];
+            }, $rows->pluck($primaryKey)->toArray()) : [];
 
             if ($dispatchesEvents) {
 
-                if (isset($dispatchesEvents['inserted'])) {
-
-                    $dispatcher = $dispatchesEvents['inserted'];
-                    new $dispatcher($values, $d);
-                }
                 if (isset($dispatchesEvents['updated'])) {
 
                     $dispatcher = $dispatchesEvents['updated'];
@@ -159,6 +141,6 @@ class MysqlPush
 
         $data[$primaryKey] = $d[0]->$primaryKey;
 
-        return array_merge($data, ['trigger' => 'upsert']);
+        return array_merge($data, ['trigger' => 'update']);
     }
 }

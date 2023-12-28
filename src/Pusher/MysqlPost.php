@@ -5,7 +5,7 @@ namespace Project\RestServer\Pusher;
 use Project\RestServer\Models\Mysql;
 use \Illuminate\Support\Facades\Config;
 
-class MysqlPush
+class MysqlPost
 {
     public function __construct()
     {
@@ -74,17 +74,6 @@ class MysqlPush
                             $arrayColumns[] = $col;
                     }
                 }
-                if (isset($values[$primaryKey]) && isset($dispatchesEvents['updating'])) {
-
-                    $dispatcher = $dispatchesEvents['updating'];
-                    new $dispatcher($values);
-
-                    foreach ($fillable as $col) {
-
-                        if ((isset($values[$col]) || array_key_exists($col, $values)) && !in_array($col, $arrayColumns))
-                            $arrayColumns[] = $col;
-                    }
-                }
             }
 
             $returnValues = [];
@@ -101,52 +90,25 @@ class MysqlPush
 
                     $val = $values[$col];
                     if ($val === null)
-                        $returnValues[] = null;
+                        $returnValues[$col] = null;
                     else
-                        $returnValues[] = $val;
+                        $returnValues[$col] = $val;
                 }
             }
             return $returnValues;
 
         })();
 
-        $sql = "
-            INSERT INTO `" . $table . "` (" . implode(',', $arrayColumns) . ")
-
-            VALUES (" . implode(',', array_map(function () {
-                return '?';
-            }, $arrayColumns)) . ")" .
-
-            " ON DUPLICATE KEY UPDATE " .
-
-            implode(',', array_map(function ($col) {
-                    return '`' . $col . '` = VALUES(`' . $col . '`)';
-                }, $arrayColumns)
-            )
-            . " RETURNING " . $primaryKey . "  ";
-
-        if (isset($payload['header']['debug'])) {
-
-            die(pre(\Str::replaceArray('?', array_map(function ($val) {
-                return is_object($val) || is_array($val) ? "'" . print_r($val, true) . "'" : "'" . $val . "'";
-            }, $bindings), $sql
-            )));
-        }
-
         if( !empty($arrayColumns) && !empty($bindings) ) {
 
-            $d = Mysql::select($sql, $bindings);
+            $id = Mysql::table($payload['model'])->insertGetId($bindings);
+            $d = [(object)[$primaryKey => $id]];
 
             if ($dispatchesEvents) {
 
                 if (isset($dispatchesEvents['inserted'])) {
 
                     $dispatcher = $dispatchesEvents['inserted'];
-                    new $dispatcher($values, $d);
-                }
-                if (isset($dispatchesEvents['updated'])) {
-
-                    $dispatcher = $dispatchesEvents['updated'];
                     new $dispatcher($values, $d);
                 }
             }
@@ -159,6 +121,6 @@ class MysqlPush
 
         $data[$primaryKey] = $d[0]->$primaryKey;
 
-        return array_merge($data, ['trigger' => 'upsert']);
+        return array_merge($data, ['trigger' => 'insert']);
     }
 }

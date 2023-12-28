@@ -51,57 +51,9 @@ class MysqlGetter
         }
 
         $rows = $main
-            ->when(isset($data['where']), function ($q) use ($data) {
+            ->when(1 == 1, function ($q) use ($data) {
 
-                foreach ($data['where'] as $where) {
-
-                    $values = array_values($where);
-                    $column = $values[0];
-                    $operand = count($values) == 2 ? '=' : $values[1];
-                    $value = count($values) == 2 ? $values[1] : $values[2];
-
-                    if (gettype($value) == 'string') {
-
-                        if (
-                            preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{1,3})Z/i', $value)
-                            ||
-                            preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{1,2})Z/i', $value)
-                        ) {
-
-                            $dt = date('Y-m-d H:i:s', strtotime($value));
-                            $value = $dt;
-                        }
-
-                        if (
-                            preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
-                            ||
-                            preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
-                        ) {
-
-                            $dt = date('Y-m-d', strtotime($value));
-                            $value = $dt;
-                        }
-                    }
-
-                    if (strtoupper($operand) == 'IN') {
-
-                        $q->whereIn($column, $value);
-                    }
-                    elseif (strtoupper($operand) == 'NOT_IN') {
-
-                        $q->whereNotIn($column, $value);
-                    }
-                    elseif (strtoupper($operand) == 'RAW') {
-
-                        $q->whereRaw($column);
-                    }
-                    else {
-
-                        $q->where($column, $operand, $value);
-                    }
-                }
-
-                return $q;
+                Mysql::whereArray($q, $data['where']);
             })
             ->when(isset($data['order']), function ($q) use ($data) {
 
@@ -134,11 +86,13 @@ class MysqlGetter
             })
             ->cursor();
 
+
+        //return array_map(function($row){ return array_merge($row, ['trigger' => 'fetch']); }, $rows->toArray());
         return (function () use ($rows, $data, $relationShipColumns) {
 
             foreach ($rows as $row) {
 
-                $array = $row->toArray();
+                $array = array_merge($row->toArray(), ['trigger' => 'fetch']);
                 if (isset($data['join']) && !empty($data['join'])) {
 
                     foreach ($data['join'] as $with) {
@@ -155,6 +109,12 @@ class MysqlGetter
                             }
                             $array[$with] = $row;
                         }
+                        /*
+                        $array[$with] = isset($relationShipColumns[$with]) && !empty($relationShipColumns[$with]) ? array_filter($array[$with], function ($v, $k) use ($with, $relationShipColumns) {
+                            return in_array($k, $relationShipColumns[$with]) || is_array($v);
+                        },
+                            ARRAY_FILTER_USE_BOTH) : $array[$with];
+                        */
                     }
                 }
 

@@ -44,7 +44,7 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
         if (Project\RestServer\Http\Requests\ValidateRequest::Broadcast($db, $model, $request)) {
 
             $event = new Project\RestServer\Broadcasting\DBBroadcast(
-                Project\RestServer\Pusher\MysqlPush::class
+                Project\RestServer\Pusher\MysqlPost::class
             );
             $data = $event->broadcast($db, $model, $request);
 
@@ -55,6 +55,21 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
 
     //make update request
     Route::post('/put/{db}/{model}', function ($db, $model, Request $request) {
+
+        if (Project\RestServer\Http\Requests\ValidateRequest::Broadcast($db, $model, $request)) {
+
+            $event = new Project\RestServer\Broadcasting\DBBroadcast(
+                Project\RestServer\Pusher\MysqlPut::class
+            );
+            $data = $event->broadcast($db, $model, $request);
+
+            return response(['status' => 'ok', 'count' => !empty($data) ? 1 : 0, 'data' => $data]);
+        }
+        return response(['status' => 'error', 'message' => 'POST error:' . Project\RestServer\Http\Requests\ValidateRequest::getError()], 406);
+    });
+
+    //make insert or update oni duplicate key request
+    Route::post('/push/{db}/{model}', function ($db, $model, Request $request) {
 
         if (Project\RestServer\Http\Requests\ValidateRequest::Broadcast($db, $model, $request)) {
 

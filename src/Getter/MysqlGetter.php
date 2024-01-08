@@ -101,13 +101,13 @@ class MysqlGetter
                         $array[$with] = !empty($join_row) ? $join_row->toArray() : [];
                         if (isset($relationShipColumns[$with]) && !empty($relationShipColumns[$with]) && !empty($array[$with])) {
 
-                            $row = [];
+                            $row_2 = [];
 
                             foreach ($relationShipColumns[$with] as $withCol) {
 
-                                $row = array_merge_recursive($row, \Project\RestServer\Component\Replace::dotValue($withCol, $array[$with]));
+                                $row_2 = array_merge_recursive($row_2, \Project\RestServer\Component\Replace::dotValue($withCol, $array[$with]));
                             }
-                            $array[$with] = $row;
+                            $array[$with] = $row_2;
                         }
                         /*
                         $array[$with] = isset($relationShipColumns[$with]) && !empty($relationShipColumns[$with]) ? array_filter($array[$with], function ($v, $k) use ($with, $relationShipColumns) {

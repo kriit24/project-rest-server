@@ -105,7 +105,17 @@ class MysqlGetter
 
                             foreach ($relationShipColumns[$with] as $withCol) {
 
-                                $row_2 = array_merge_recursive($row_2, \Project\RestServer\Component\Replace::dotValue($withCol, $array[$with]));
+                                if (array_is_list($array[$with])) {
+
+                                    foreach ($array[$with] as $k => $v) {
+
+                                        $row_2[$k] = array_merge_recursive((isset($row_2[$k]) ? $row_2[$k] : []), \Project\RestServer\Component\Replace::dotValue($withCol, $v));
+                                    }
+                                }
+                                else {
+
+                                    $row_2 = array_merge_recursive($row_2, \Project\RestServer\Component\Replace::dotValue($withCol, $array[$with]));
+                                }
                             }
                             $array[$with] = $row_2;
                         }

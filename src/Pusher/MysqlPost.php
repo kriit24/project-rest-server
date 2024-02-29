@@ -109,7 +109,7 @@ class MysqlPost
                 if (isset($dispatchesEvents['inserted'])) {
 
                     $dispatcher = $dispatchesEvents['inserted'];
-                    new $dispatcher($values, $d);
+                    new $dispatcher(Mysql::table($payload['model'])->where($primaryKey, $id)->first());
                 }
             }
         }
@@ -119,7 +119,7 @@ class MysqlPost
             return [];
         }
 
-        $data[$primaryKey] = $d[0]->$primaryKey;
+        $data[$primaryKey] = $id;
 
         return array_merge($data, ['trigger' => 'insert']);
     }

@@ -136,18 +136,19 @@ class MysqlPush
         if( !empty($arrayColumns) && !empty($bindings) ) {
 
             $d = Mysql::select($sql, $bindings);
+            $id = $d[0]->$primaryKey;
 
             if ($dispatchesEvents) {
 
                 if (isset($dispatchesEvents['inserted'])) {
 
                     $dispatcher = $dispatchesEvents['inserted'];
-                    new $dispatcher($values, $d);
+                    new $dispatcher(Mysql::table($payload['model'])->where($primaryKey, $id)->get());
                 }
                 if (isset($dispatchesEvents['updated'])) {
 
                     $dispatcher = $dispatchesEvents['updated'];
-                    new $dispatcher($values, $d);
+                    new $dispatcher(Mysql::table($payload['model'])->where($primaryKey, $id)->get());
                 }
             }
         }
@@ -157,7 +158,7 @@ class MysqlPush
             return [];
         }
 
-        $data[$primaryKey] = $d[0]->$primaryKey;
+        $data[$primaryKey] = $id;
 
         return array_merge($data, ['trigger' => 'upsert']);
     }

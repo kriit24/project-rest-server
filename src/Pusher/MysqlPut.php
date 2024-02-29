@@ -100,6 +100,7 @@ class MysqlPut
 
         })();
 
+        /*
         if (isset($payload['header']['debug'])) {
 
             die(pre(\Str::replaceArray('?', array_map(function ($val) {
@@ -107,6 +108,7 @@ class MysqlPut
             }, $bindings), $sql
             )));
         }
+        */
 
         if (!empty($arrayColumns) && !empty($bindings)) {
 
@@ -123,13 +125,14 @@ class MysqlPut
             $d = !empty($rows) ? array_map(function ($val) use ($primaryKey) {
                 return (object)[$primaryKey => $val];
             }, $rows->pluck($primaryKey)->toArray()) : [];
+            $id = $d[0]->$primaryKey;
 
             if ($dispatchesEvents) {
 
                 if (isset($dispatchesEvents['updated'])) {
 
                     $dispatcher = $dispatchesEvents['updated'];
-                    new $dispatcher($values, $d);
+                    new $dispatcher(Mysql::table($payload['model'])->where($primaryKey, $id)->first());
                 }
             }
         }

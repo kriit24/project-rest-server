@@ -104,7 +104,7 @@ class MysqlPost
             $id = Mysql::table($payload['model'])->insertGetId($bindings);
             $d = [(object)[$primaryKey => $id]];
 
-            if ($dispatchesEvents) {
+            if ($dispatchesEvents && $id) {
 
                 if (isset($dispatchesEvents['inserted'])) {
 

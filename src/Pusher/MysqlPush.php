@@ -136,9 +136,9 @@ class MysqlPush
         if( !empty($arrayColumns) && !empty($bindings) ) {
 
             $d = Mysql::select($sql, $bindings);
-            $id = $d[0]->$primaryKey;
+            $id = !empty($d) ? array_map(fn ($v) => $v->$primaryKey, $d) : null;
 
-            if ($dispatchesEvents) {
+            if ($dispatchesEvents && $id) {
 
                 if (isset($dispatchesEvents['inserted'])) {
 

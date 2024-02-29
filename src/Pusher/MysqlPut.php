@@ -125,9 +125,9 @@ class MysqlPut
             $d = !empty($rows) ? array_map(function ($val) use ($primaryKey) {
                 return (object)[$primaryKey => $val];
             }, $rows->pluck($primaryKey)->toArray()) : [];
-            $id = $d[0]->$primaryKey;
+            $id = !empty($d) ? $d[0]->$primaryKey : null;
 
-            if ($dispatchesEvents) {
+            if ($dispatchesEvents && $id) {
 
                 if (isset($dispatchesEvents['updated'])) {
 

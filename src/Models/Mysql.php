@@ -12,6 +12,7 @@ class Mysql extends DB
     {
         if (is_object($connection)) {
 
+            $connection->setConnection($this->connection);
             return $connection;
         }
         else {

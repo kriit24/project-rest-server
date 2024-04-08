@@ -23,7 +23,7 @@ class MysqlDelete
         if (!$table) return [];
 
         $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.mysql_dynamic', $db);
+        Config::set('database.connections.' . Mysql::getConn(), $db);
 
         $reflectionProperty = $reflectionClass->getProperty('primaryKey');
         $primaryKey = $reflectionProperty->getValue(new $class);
@@ -47,7 +47,7 @@ class MysqlDelete
                 new $dispatcher($data);
             }
 
-            $d = Mysql::select("DELETE FROM `" . $table . "` WHERE `" . $primaryKey . "`= ? RETURNING " . implode(',', $fillable), [$data[$primaryKey]]);
+            $d = Mysql::init(null)->select("DELETE FROM `" . $table . "` WHERE `" . $primaryKey . "`= ? RETURNING " . implode(',', $fillable), [$data[$primaryKey]]);
 
             if (!empty($d)) {
 

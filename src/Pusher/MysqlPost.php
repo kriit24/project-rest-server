@@ -25,7 +25,7 @@ class MysqlPost
         //pre($payload);
 
         $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.mysql_dynamic', $db);
+        Config::set('database.connections.' . Mysql::getConn(), $db);
 
         $reflectionProperty = $reflectionClass->getProperty('primaryKey');
         $primaryKey = $reflectionProperty->getValue(new $class);
@@ -101,7 +101,7 @@ class MysqlPost
 
         if( !empty($arrayColumns) && !empty($bindings) ) {
 
-            $id = Mysql::table($payload['model'])->insertGetId($bindings);
+            $id = Mysql::init(null)->table($payload['model'])->insertGetId($bindings);
             $d = [(object)[$primaryKey => $id]];
 
             if ($dispatchesEvents && $id) {
@@ -109,7 +109,7 @@ class MysqlPost
                 if (isset($dispatchesEvents['inserted'])) {
 
                     $dispatcher = $dispatchesEvents['inserted'];
-                    new $dispatcher(Mysql::table($payload['model'])->where($primaryKey, $id)->first());
+                    new $dispatcher(Mysql::init(null)->table($payload['model'])->where($primaryKey, $id)->first());
                 }
             }
         }

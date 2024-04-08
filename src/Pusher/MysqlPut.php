@@ -112,8 +112,7 @@ class MysqlPut
 
         if (!empty($arrayColumns) && !empty($bindings)) {
 
-            $q = (new Mysql())
-                ->init(new $class())
+            $q = Mysql::init(new $class())
                 ->when(1 == 1, function ($q) use ($where) {
 
                     Mysql::whereArray($q, $where);
@@ -132,7 +131,7 @@ class MysqlPut
                 if (isset($dispatchesEvents['updated'])) {
 
                     $dispatcher = $dispatchesEvents['updated'];
-                    new $dispatcher(Mysql::table($payload['model'])->where($primaryKey, $id)->first());
+                    new $dispatcher(Mysql::init(null)->table($payload['model'])->where($primaryKey, $id)->first());
                 }
             }
         }

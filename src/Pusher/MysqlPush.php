@@ -25,7 +25,7 @@ class MysqlPush
         //pre($payload);
 
         $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.mysql_dynamic', $db);
+        Config::set('database.connections.' . Mysql::getConn(), $db);
 
         $reflectionProperty = $reflectionClass->getProperty('primaryKey');
         $primaryKey = $reflectionProperty->getValue(new $class);
@@ -135,7 +135,7 @@ class MysqlPush
 
         if( !empty($arrayColumns) && !empty($bindings) ) {
 
-            $d = Mysql::select($sql, $bindings);
+            $d = Mysql::init(null)->select($sql, $bindings);
             $id = !empty($d) ? array_map(fn ($v) => $v->$primaryKey, $d) : null;
 
             if ($dispatchesEvents && $id) {
@@ -143,12 +143,12 @@ class MysqlPush
                 if (isset($dispatchesEvents['inserted'])) {
 
                     $dispatcher = $dispatchesEvents['inserted'];
-                    new $dispatcher(Mysql::table($payload['model'])->where($primaryKey, $id)->get());
+                    new $dispatcher(Mysql::init(null)->table($payload['model'])->where($primaryKey, $id)->get());
                 }
                 if (isset($dispatchesEvents['updated'])) {
 
                     $dispatcher = $dispatchesEvents['updated'];
-                    new $dispatcher(Mysql::table($payload['model'])->where($primaryKey, $id)->get());
+                    new $dispatcher(Mysql::init(null)->table($payload['model'])->where($primaryKey, $id)->get());
                 }
             }
         }

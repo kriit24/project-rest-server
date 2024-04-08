@@ -26,14 +26,13 @@ class MysqlGetter
         if (!$table) return [];
 
         $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.mysql_dynamic', $db);
+        Config::set('database.connections.' . Mysql::getConn(), $db);
 
         //die(pre($payload));
         if (isset($data['use'])) {
 
             $use = (array)$data['use'];
-            $main = (new Mysql())
-                ->init(new $class());
+            $main = Mysql::init(new $class());
 
             $relationShipColumns = self::select($main, $data);
 
@@ -44,8 +43,7 @@ class MysqlGetter
         }
         else {
 
-            $main = (new Mysql())
-                ->init(new $class());
+            $main = Mysql::init(new $class());
 
             $relationShipColumns = self::select($main, $data);
         }

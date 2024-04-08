@@ -8,18 +8,18 @@ class Mysql extends DB
 {
     protected $connection = 'mysql_dynamic';
 
-    public function init($connection)
+    public static function init($connection)
     {
+        $self = new Mysql();
         if (is_object($connection)) {
 
-            $connection->setConnection($this->connection);
+            $connection->setConnection($self->connection);
             return $connection;
         }
         else {
 
-            $this->connection = $connection;
+            return $self::connection($connection ?: $self->connection);
         }
-        return $this;
     }
 
     public static function getDataValue($data, $type = 'where', $column = null)
@@ -103,5 +103,10 @@ class Mysql extends DB
             }
         }
         return $q;
+    }
+
+    public static function getConn()
+    {
+        return (new self())->connection;
     }
 }

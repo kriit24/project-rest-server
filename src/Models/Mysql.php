@@ -68,20 +68,26 @@ class Mysql extends DB
                     preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{1,3})Z/i', $value)
                     ||
                     preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{1,2})Z/i', $value)
+                    ||
+                    preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2}) ([0-9]{2}:[0-9]{2}:[0-9]{1,2})Z/i', $value)
+                    ||
+                    preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2}) ([0-9]{2}:[0-9]{2}:[0-9]{1,2})/i', $value)
                 ) {
 
                     $dt = date('Y-m-d H:i:s', strtotime($value));
                     $value = $dt;
                 }
+                else {
 
-                if (
-                    preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
-                    ||
-                    preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
-                ) {
+                    if (
+                        preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
+                        ||
+                        preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
+                    ) {
 
-                    $dt = date('Y-m-d', strtotime($value));
-                    $value = $dt;
+                        $dt = date('Y-m-d', strtotime($value));
+                        $value = $dt;
+                    }
                 }
             }
 

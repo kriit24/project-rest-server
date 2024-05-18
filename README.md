@@ -36,6 +36,31 @@ $config = [
 Project\RestServer\Config::set($config);
 //pre($config);
 
+//SET auth.hash.key for each user after Auth is done
+//OR use stationary in $config
+//app/Http/Middleware/Authenticate.php
+/*
+namespace App\Http\Middleware;
+
+use App\Component\Auth;
+use Closure;
+
+class Authenticate
+{
+    public function handle($request, Closure $next, $guard = null)
+    {
+        if (($step = \App\Http\Requests\TokenRequest::isValid($request)) == 'ok') {
+
+            $user_key = (new Auth())->UserData('user_key');
+            config(['auth.hash.key' => $user_key]);
+            return $next($request);
+        }
+
+        return response('Unauthorized (' . $step . ').', 401);
+    }
+}
+ */
+
 Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Project\RestServer\Http\Middleware\VerifyPostMac::class])->group(function () {
 
     //make insert request

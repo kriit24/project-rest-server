@@ -2,9 +2,8 @@
 
 namespace Project\RestServer\Getter;
 
+use Illuminate\Support\Facades\Config;
 use Project\RestServer\Models\Mysql;
-use \Illuminate\Support\Facades\Config;
-use \Illuminate\Support\Facades\DB;
 
 class MysqlGetter
 {
@@ -28,53 +27,21 @@ class MysqlGetter
         $db = config('database.connections.' . $payload['db']);
         Config::set('database.connections.' . Mysql::getConn(), $db);
 
+        $main = Mysql::init(new $class());
+
+        $relationShipColumns = self::select($main, $data);
+
         //die(pre($payload));
         if (isset($data['use'])) {
 
             $use = (array)$data['use'];
-            $main = Mysql::init(new $class());
-
-            $relationShipColumns = self::select($main, $data);
-
             foreach ($use as $val) {
 
-                $main->$val($data);
+                $main = $main->$val($data);
             }
         }
-        else {
 
-            $main = Mysql::init(new $class());
-
-            $relationShipColumns = self::select($main, $data);
-        }
-
-        $rows = $main
-            ->when(1 == 1, function ($q) use ($data) {
-
-                Mysql::whereArray($q, $data['where']);
-            })
-            ->when(isset($data['order']), function ($q) use ($data) {
-
-                foreach ($data['order'] as $order) {
-
-                    $q->orderBy($order[0], $order[1] ?? 'asc');
-                }
-            })
-            ->when(isset($data['group']), function ($q) use ($data) {
-
-                foreach ($data['group'] as $group) {
-
-                    $q->groupBy(DB::raw($group));
-                }
-            })
-            ->when(isset($data['offset']), function ($q) use ($data) {
-
-                $q->skip($data['offset']);
-            })
-            ->when(isset($data['limit']), function ($q) use ($data) {
-
-                $q->take($data['limit']);
-            })
+        $rows = Mysql::builder($main, $data)
             ->when(isset($payload['header']['debug']), function ($q) {
 
                 die(pre(\Str::replaceArray('?', array_map(function ($val) {

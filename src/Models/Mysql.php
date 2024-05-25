@@ -22,6 +22,37 @@ class Mysql extends DB
         }
     }
 
+    public static function builder($q, $data)
+    {
+        return $q
+            ->when(1 == 1, function ($q) use ($data) {
+
+                Mysql::whereArray($q, $data['where']);
+            })
+            ->when(isset($data['order']), function ($q) use ($data) {
+
+                foreach ($data['order'] as $order) {
+
+                    $q->orderBy($order[0], $order[1] ?? 'asc');
+                }
+            })
+            ->when(isset($data['group']), function ($q) use ($data) {
+
+                foreach ($data['group'] as $group) {
+
+                    $q->groupBy(DB::raw($group));
+                }
+            })
+            ->when(isset($data['offset']), function ($q) use ($data) {
+
+                $q->skip($data['offset']);
+            })
+            ->when(isset($data['limit']), function ($q) use ($data) {
+
+                $q->take($data['limit']);
+            });
+    }
+
     public static function getDataValue($data, $type = 'where', $column = null)
     {
         if ($column) {

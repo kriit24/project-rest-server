@@ -8,9 +8,51 @@ This project using composer.
 $ composer require kriit24/project-rest-server
 ```
 
-## Clients for this server  
-#### [react-native](https://www.npmjs.com/package/project-rest-client)
-#### php client coming soon
+
+```
+CREATE TABLE IF NOT EXISTS `table_changes` (
+    `table_changes_id` INT(11) NOT NULL AUTO_INCREMENT,
+    `table_changes_table_name` VARCHAR(150) NOT NULL COLLATE 'utf8mb3_general_ci',
+    `table_changes_table_id` BIGINT(20) NOT NULL DEFAULT '0',
+    `table_changes_updated_at` DATETIME NULL DEFAULT NULL,
+    PRIMARY KEY (`table_changes_id`) USING BTREE,
+    UNIQUE INDEX `table_changes_table_name_table_changes_table_id` (`table_changes_table_name`, `table_changes_table_id`) USING BTREE,
+    INDEX `table_changes_updated_at` (`table_changes_updated_at`) USING BTREE
+)
+COLLATE='utf8mb3_general_ci'
+ENGINE=InnoDB;
+
+
+DROP PROCEDURE IF EXISTS project_rest_event;
+
+
+DELIMITER //
+
+CREATE PROCEDURE `project_rest_event`(IN `table_name` VARCHAR(150),IN `table_id` INT)
+    LANGUAGE SQL
+    DETERMINISTIC
+    CONTAINS SQL
+    SQL SECURITY DEFINER
+    COMMENT ''
+    BEGIN
+    
+        INSERT INTO table_changes (table_changes_table_name, table_changes_table_id, table_changes_updated_at)
+
+			SELECT table_name, table_id, NOW()
+			
+			ON DUPLICATE KEY UPDATE
+			table_changes_updated_at = NOW();
+    
+    END;
+    
+//    
+    
+DELIMITER ;
+```
+
+## Client for server  
+#### react-native: [project-rest-client](https://www.npmjs.com/package/project-rest-client)
+#### php: coming soon
 
 
 ## NB!  
@@ -26,7 +68,7 @@ If u use json_encode to compile data then allways use it with option JSON_UNESCA
 $config = [
     //128 AES key
     //u can generate key - Project\RestServer\Component\Crypto::generateKey()
-    'auth.hash.key' => '',
+    'auth.hash.key' => '',//if u use dynamic hash key then leave empty
     'database.connections.CHANNEL_NAME' => config('database.connections.mysql'),
     'app.model.dir' => dirname(__DIR__) . '/app/Models',
     'app.model.namespace' => '\App\Models',
@@ -49,9 +91,15 @@ class Authenticate
 {
     public function handle($request, Closure $next, $guard = null)
     {
-        if (($step = \App\Http\Requests\TokenRequest::isValid($request)) == 'ok') {
+        $check = $request;
+        if( $request->get('uuid') && $request->get('token') ){
 
-            $user_key = (new Auth())->UserData('user_key');
+            $check = $request->all();
+        }
+
+        if (($step = \App\Http\Requests\TokenRequest::isValid($check)) == 'ok') {
+
+            $user_key = (new Auth())->UserData('user_key');//logged in user session
             config(['auth.hash.key' => $user_key]);
             return $next($request);
         }
@@ -93,7 +141,7 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
         return response(['status' => 'error', 'message' => 'POST error:' . Project\RestServer\Http\Requests\ValidateRequest::getError()], 406);
     });
 
-    //make insert or update oni duplicate key request
+    //make insert or update on duplicate key request
     Route::post('/push/{db}/{model}', function ($db, $model, Request $request) {
 
         if (Project\RestServer\Http\Requests\ValidateRequest::Broadcast($db, $model, $request)) {
@@ -145,6 +193,70 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
             return response(['status' => 'ok', 'count' => count($rows), 'data' => $rows]);
         }
         return response(['status' => 'error', 'message' => 'FETCH error:' . Project\RestServer\Http\Requests\ValidateRequest::getError()], 406);
+    });
+    
+    //make event request for live
+    Route::post('/event/{db}/{model}', function ($db, $model, Request $request) {
+
+        $ret = \Project\RestServer\Component\Event::handle($db, $model, $request);
+        return response($ret);
+    });
+});
+
+
+Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\Http\Middleware\VerifyGetMac::class])->group(function () {
+
+    //make live request
+    Route::get('/live/{db}/{model}', function ($db, $model, Request $request) {
+
+        if (Project\RestServer\Http\Requests\ValidateRequest::Fetch($db, $model, $request)) {
+
+            $event = new Project\RestServer\Broadcasting\DBBroadcast(
+                Project\RestServer\Getter\MysqlLive::class
+            );
+
+            $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($event, $model, $db, $request) {
+
+                $keep_alive = 60;
+                $counter = $keep_alive;
+                while (true) {
+
+                    $data = $event->fetch($db, $model, $request);
+                    if ($data instanceof Generator || $data instanceof Closure || $data instanceof \Illuminate\Support\LazyCollection) {
+
+                        $rows = iterator_to_array($data);
+                    }
+                    else {
+
+                        $rows = $data;
+                    }
+
+                    if (!empty($rows)) {
+
+                        \Project\RestServer\Component\Event::message('message', json_encode($rows, JSON_UNESCAPED_UNICODE));
+                    }
+                    else if( empty($rows) && $counter <= 0 ) {
+
+                        \Project\RestServer\Component\Event::message('ping', 'ping');
+                    }
+                    if ($counter <= 0)
+                        $counter = $keep_alive;
+
+                    // Break the loop if the client aborted the connection (closed the page)
+                    if (connection_aborted()) break;
+
+                    $counter--;
+                    sleep(1);
+                }
+            });
+            $response->headers->set('Content-Type', 'text/event-stream');
+            $response->headers->set('X-Accel-Buffering', 'no');
+            $response->headers->set('Cach-Control', 'no-cache');
+            $response->headers->set('Connection', 'keep-alive');
+            $response->headers->set('Access-Control-Allow-Origin', '*');
+            return $response;
+        }
+        return response(['status' => 'error', 'message' => 'LIVE FETCH error:' . Project\RestServer\Http\Requests\ValidateRequest::getError()], 406);
     });
 });
 

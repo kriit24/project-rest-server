@@ -89,7 +89,7 @@ class DBBroadcast
         $payload = [
             'db' => $channel,
             'model' => $model,
-            'message' => $request->post(),
+            'message' => $request->get('query', null) ? json_decode(urldecode($request->get('query')), true) : $request->post(),
             'header' => $request->header(),
         ];
 

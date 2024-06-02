@@ -16,8 +16,9 @@ class MysqlLive
 
     public function trigger($payload, $request)
     {
-        //die(pre($payload));
-        $name = base64_encode($request->get('query'));
+        //die(pre($request->get('uuid')));
+        $header = $payload['header'];
+        $name = $request->get('uuid') . '_' . base64_encode(json_encode($header)) . '_' . base64_encode($request->get('query'));
         $full = $request->get('full', null) && $request->get('full') == 'true';
         $rows = [];
 

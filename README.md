@@ -233,7 +233,7 @@ Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\
 
                     if (!empty($rows)) {
 
-                        \Project\RestServer\Component\Event::message('message', json_encode($rows, JSON_UNESCAPED_UNICODE));
+                        \Project\RestServer\Component\Event::message('message', json_encode(['status' => 'ok', 'count' => count($rows), 'data' => $rows], JSON_UNESCAPED_UNICODE), null, 5000);
                     }
                     else if( empty($rows) && $counter <= 0 ) {
 

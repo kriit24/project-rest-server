@@ -31,9 +31,13 @@ class Event
         return ['status' => 'ok'];
     }
 
-    public static function message($event, $message)
+    public static function message($event, $message, $id = null, $retry = null)
     {
         echo 'event: ' . $event . "\n";
+        if( $id )
+            echo 'id: ' . $id . "\n";
+        if( $retry )
+            echo 'retry: ' . $retry . "\n";
         echo 'data: ' . $message . "\n\n";
 
         @ob_end_flush();

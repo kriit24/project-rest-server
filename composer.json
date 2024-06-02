@@ -1,7 +1,7 @@
 {
     "name": "kriit24/project-rest-server",
     "description": "Laravel REST-API server",
-    "version": "v1.1.2",
+    "version": "v1.1.3",
     "type": "library",
     "license": "MIT",
     "autoload": {

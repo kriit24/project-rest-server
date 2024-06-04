@@ -78,6 +78,7 @@ If u use json_encode to compile data then allways use it with option JSON_UNESCA
 ```php
 <?php
 
+//--- CONFIG ---
 //route/api.php
 $config = [
     //128 AES key
@@ -92,6 +93,8 @@ $config = [
 Project\RestServer\Config::set($config);
 //pre($config);
 
+
+//--- AUTH AND DYNAMIC KEY ---
 //SET auth.hash.key for each user after Auth is done
 //OR use stationary in $config
 //app/Http/Middleware/Authenticate.php
@@ -122,6 +125,8 @@ class Authenticate
     }
 }
  */
+
+//--- ROUTES (routes/api.php) ---
 
 Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Project\RestServer\Http\Middleware\VerifyPostMac::class])->group(function () {
 
@@ -311,7 +316,7 @@ $params = [
 ];
 ```
 
-#### RELATION INSERT
+#### RELATIONAL INSERT
 
 setup relational child table
 

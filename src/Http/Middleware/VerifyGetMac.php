@@ -36,6 +36,10 @@ class VerifyGetMac
         $query_string = urldecode($request->get('query', ''));
         $http_mac = isset($headers['http_mac']) ? $headers['http_mac'] : null;
 
+        if( !config('auth.hash.key') ){
+
+            return $next($request);
+        }
         if (\Project\RestServer\Http\Requests\MacRequest::isValid($request, $query_string, $http_mac)) {
 
             return $next($request);

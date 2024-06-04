@@ -68,7 +68,7 @@ If u use json_encode to compile data then allways use it with option JSON_UNESCA
 $config = [
     //128 AES key
     //u can generate key - Project\RestServer\Component\Crypto::generateKey()
-    'auth.hash.key' => '',//if u use dynamic hash key then leave empty
+    'auth.hash.key' => '',//if u use dynamic hash key then leave empty. IF auth key is empty then mac is not checked
     'database.connections.CHANNEL_NAME' => config('database.connections.mysql'),
     'app.model.dir' => dirname(__DIR__) . '/app/Models',
     'app.model.namespace' => '\App\Models',

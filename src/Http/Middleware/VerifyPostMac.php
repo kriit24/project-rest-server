@@ -34,6 +34,10 @@ class VerifyPostMac
         //pre((string)$data['object_radius']);
         //pre($http_mac);
 
+        if( !config('auth.hash.key') ){
+
+            return $next($request);
+        }
         if (\Project\RestServer\Http\Requests\MacRequest::isValid($request, $data, $http_mac)) {
 
             return $next($request);

@@ -313,23 +313,23 @@ $params = [
 
 #### RELATION INSERT
 
-setup relational parent table
+setup relational child table
 
 ```
-//App\Models\objectT.php - set relation after inserted
+//App\Models\address.php - set relation after inserted
 protected $dispatchesEvents = [
-    'inserted' => ObjectAfterInsert::class,
+    'inserted' => AddressAfterInsert::class,
 ];
 
-//App\Models\Event\ObjectAfterInsert.php - call relation
+//App\Models\Event\AddressAfterInsert.php - call relation
 
 declare(strict_types=1);
 
 namespace App\Models\Events;
 
-use App\Models\objectT;
+use App\Models\address;
 
-class ObjectAfterInsert extends objectT
+class AddressAfterInsert extends address
 {
     public function __construct($bindings, $tableData)
     {
@@ -339,20 +339,20 @@ class ObjectAfterInsert extends objectT
 
 ```
 
-setup relational child table
+setup relational parent table
 
 ```
-//App\Models\address.php - set relation before insert
+//App\Models\objectT.php - set relation before insert
  protected $dispatchesEvents = [
-    'inserting' => AddressBeforeInsert::class,
+    'inserting' => ObjectBeforeInsert::class,
 ];
 
-//App\Models\Events\AddressBeforeInsert.php - get relation id
+//App\Models\Events\ObjectBeforeInsert.php - get relation id
 declare(strict_types=1);
 
 namespace App\Models\Events;
 
-class AddressBeforeInsert
+class ObjectBeforeInsert
 {
     public function __construct(&$bindings)
     {
@@ -362,8 +362,7 @@ class AddressBeforeInsert
             if( !empty($relation) ) {
                 
                 //die(pre($relation));
-                $bindings['image_table'] = $relation->table_relation_table_name;
-                $bindings['image_table_id'] = $relation->table_relation_table_id;
+                $bindings['object_address_id'] = $relation->table_relation_table_id;
             }
         }
     }

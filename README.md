@@ -286,17 +286,6 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class])->
 ```
 
 
-## QUERIES
-
-### FETCH  
-```
-curl -X POST 
--H "Content-Type: application/json"
--H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
--d '{"column":null,"join":null,"use":null,"where":null,"group":null,"order":null,"limit":null,"offset":null}'
-https://your.api.domain/api/fetch/{database}/{model}
-```  
-  
 #### PARAMS
 ```php
 $params = [
@@ -322,39 +311,62 @@ $params = [
 ];
 ```
 
-### POST
-```
-curl -X POST 
--H "Content-Type: application/json"
--H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
--d '{"column_name":value}'
-https://your.api.domain/api/post/{database}/{model}
-```  
+#### RELATION INSERT
 
-### PUT
+setup relational parent table
+
 ```
-curl -X POST 
--H "Content-Type: application/json"
--H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
--d '{"set":{"column_name" : value},"where":[["column_name", "=", "value"]]}'
-https://your.api.domain/api/put/{database}/{model}
+//App\Models\objectT.php - set relation after inserted
+protected $dispatchesEvents = [
+    'inserted' => ObjectAfterInsert::class,
+];
+
+//App\Models\Event\ObjectAfterInsert.php - call relation
+
+declare(strict_types=1);
+
+namespace App\Models\Events;
+
+use App\Models\objectT;
+
+class ObjectAfterInsert extends objectT
+{
+    public function __construct($bindings, $tableData)
+    {
+        new \Project\RestServer\Models\Events\TableRelation($this->getTable(), $this->getKeyName(), $bindings, $tableData);
+    }
+}
+
 ```
 
-### PUSH
-```
-curl -X POST 
--H "Content-Type: application/json"
--H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
--d '{"primary_id":value,"column_name":value}'
-https://your.api.domain/api/put/{database}/{model}
-```  
+setup relational child table
 
-
-### DELETE
 ```
-curl -X POST 
--H "Content-Type: application/json"
--H "mac: NWM3NzIzMjFjYjQ0ZmQ4MGZjODg5MTg5OTkxMWYwYWRhYWFlOTNlMjUzNWE2MTY3OTAxNGM4M2MzNjY3OWY4MWRjYzA1MjQ2ZGZhNTc3OWVhNzc3MjMyNTRiZGNiY2Ew"
--d '{"parimary_id":value,"column_name":value}'
-https://your.api.domain/api/delete/{database}/{model}
-``` 
+//App\Models\address.php - set relation before insert
+ protected $dispatchesEvents = [
+    'inserting' => AddressBeforeInsert::class,
+];
+
+//App\Models\Events\AddressBeforeInsert.php - get relation id
+declare(strict_types=1);
+
+namespace App\Models\Events;
+
+class AddressBeforeInsert
+{
+    public function __construct(&$bindings)
+    {
+        if (isset($bindings['table_relation_unique_id'])) {
+
+            $relation = \Project\RestServer\Models\Events\TableRelation::fetch($bindings['table_relation_unique_id']);
+            if( !empty($relation) ) {
+                
+                //die(pre($relation));
+                $bindings['image_table'] = $relation->table_relation_table_name;
+                $bindings['image_table_id'] = $relation->table_relation_table_id;
+            }
+        }
+    }
+}
+
+```

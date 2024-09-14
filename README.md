@@ -297,18 +297,20 @@ $params = [
     //get all columns
     'column' => null,
     //get current columns
-    //'column' => ['column_1', 'column_2'],
+    'column' => ['column_1', 'column_2'],
     //get all parent columns also "use" columns
-    //'column' => ['*'],
+    'column' => ['*'],
     //get join columns 
-    //'column' => ['child_table.child_table_column', 'child_table_1.child_table_2.child_table_column'],
+    'column' => ['child_table.child_table_column', 'child_table_1.child_table_2.child_table_column'],
     //join sibling data 
     'join' => ['join_1', 'join_2'],
     //use query as query builder
     'use' => ['use_1', 'use_2'],
-    //u can use operands line IN, NOT_IN AND RAW
+    //u can use operands line RAW
     //if operand is RAW then first argument is used as where statement
-    'where' => [['object_id', '=', 1], ['object_id BETWEEN 1 AND 2', 'RAW']],
+    'where' => [['object_id', '=', 1]],
+    'where' => [['object_id BETWEEN 1 AND 10', 'RAW']],
+    'where' => [['object_id BETWEEN ? AND ?', 'RAW', [1,10]]],
     'group' => ["object_id", "object_name"],
     'order' => [["object_id", "DESC"], ["object_name", "ASC"]],
     'limit' => 1,
@@ -318,7 +320,8 @@ $params = [
 
 #### RELATIONAL INSERT
 
-setup relational child table
+#### # setup relational child table
+
 
 ```
 //App\Models\address.php - set relation after inserted
@@ -344,7 +347,24 @@ class AddressAfterInsert extends address
 
 ```
 
-setup relational parent table
+#### # request
+
+```
+$unique_id = unique_id();
+```
+
+```
+curl -i -X POST \
+   -H "uuid:KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg" \
+   -H "token:5751d40d2e9ab5a163d772fbc6d8f7027180ad65f1345cf60534b5d0d1f04facd35271987f05e0c8c9e8b5ba6a881bbe7bcce7521d5d995bdf08bc2ea00bc7dd" \
+   -H "Content-Type:application/json" \
+   -H "mac:ZTRhMGQyY2M3YWJkNDAxN2NmMThjY2I1MTU1Yjk2ZjEzYWZlYjYxNTk2Y2ZkMmE5YTczNzhkMmE2ZmI0ZjE4MzRkODcyMTY2M2YyOTc1MGRhZjBkMzY5M2EyMTZkYzQ0" \
+   -d \
+'{"address_name":"test","data_unique_id":$unique_id}' \
+ 'https://localhost/post/haldus_projectpartner_ee/address'
+```
+
+#### # setup relational parent table
 
 ```
 //App\Models\objectT.php - set relation before insert
@@ -373,4 +393,17 @@ class ObjectBeforeInsert
     }
 }
 
+```
+
+#### # request
+
+```
+curl -i -X POST \
+   -H "uuid:KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg" \
+   -H "token:5751d40d2e9ab5a163d772fbc6d8f7027180ad65f1345cf60534b5d0d1f04facd35271987f05e0c8c9e8b5ba6a881bbe7bcce7521d5d995bdf08bc2ea00bc7dd" \
+   -H "Content-Type:application/json" \
+   -H "mac:ZTRhMGQyY2M3YWJkNDAxN2NmMThjY2I1MTU1Yjk2ZjEzYWZlYjYxNTk2Y2ZkMmE5YTczNzhkMmE2ZmI0ZjE4MzRkODcyMTY2M2YyOTc1MGRhZjBkMzY5M2EyMTZkYzQ0" \
+   -d \
+'{"object_name":"test","table_relation_unique_id":$unique_id}' \
+ 'https://localhost/post/haldus_projectpartner_ee/object'
 ```

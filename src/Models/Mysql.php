@@ -83,59 +83,71 @@ class Mysql extends DB
 
     public static function whereArray($q, $where)
     {
-        if( empty($where) )
+        if (empty($where))
             return $q;
 
-        foreach ($where as $whereStmt) {
+        if (array_is_list($where)) {
 
-            $values = array_values($whereStmt);
-            $column = $values[0];
-            $operand = count($values) == 2 ? '=' : $values[1];
-            $value = count($values) == 2 ? $values[1] : $values[2];
+            foreach ($where as $whereStmt) {
 
-            if (gettype($value) == 'string') {
+                $values = array_values($whereStmt);
+                $column = $values[0];
+                $operand = count($values) == 2 && $values[1] !== 'RAW' ? '=' : $values[1];
+                $value = count($values) == 2 ? ($values[1] !== 'RAW' ? $values[1] : null) : $values[2];
 
-                if (
-                    preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{1,3})Z/i', $value)
-                    ||
-                    preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{1,2})Z/i', $value)
-                    ||
-                    preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2}) ([0-9]{2}:[0-9]{2}:[0-9]{1,2})Z/i', $value)
-                    ||
-                    preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2}) ([0-9]{2}:[0-9]{2}:[0-9]{1,2})/i', $value)
-                ) {
+                if (gettype($value) == 'string') {
 
-                    $dt = date('Y-m-d H:i:s', strtotime($value));
-                    $value = $dt;
+                    if (
+                        preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{1,3})Z/i', $value)
+                        ||
+                        preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})T([0-9]{2}:[0-9]{2}:[0-9]{1,2})Z/i', $value)
+                        ||
+                        preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2}) ([0-9]{2}:[0-9]{2}:[0-9]{1,2})Z/i', $value)
+                        ||
+                        preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2}) ([0-9]{2}:[0-9]{2}:[0-9]{1,2})/i', $value)
+                    ) {
+
+                        $dt = date('Y-m-d H:i:s', strtotime($value));
+                        $value = $dt;
+                    }
+                    else {
+
+                        if (
+                            preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
+                            ||
+                            preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
+                        ) {
+
+                            $dt = date('Y-m-d', strtotime($value));
+                            $value = $dt;
+                        }
+                    }
+                }
+
+                if (strtoupper($operand) == 'IN') {
+
+                    $q->whereIn($column, $value);
+                }
+                elseif (strtoupper($operand) == 'NOT_IN') {
+
+                    $q->whereNotIn($column, $value);
+                }
+                elseif (strtoupper($operand) == 'RAW') {
+
+                    $q->whereRaw($column, $value);
                 }
                 else {
 
-                    if (
-                        preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
-                        ||
-                        preg_match('/([0-9]{4}-[0-9]{2}-[0-9]{2})/i', $value)
-                    ) {
-
-                        $dt = date('Y-m-d', strtotime($value));
-                        $value = $dt;
-                    }
+                    $q->where($column, $operand, $value);
                 }
             }
+        }
+        else{
 
-            if (strtoupper($operand) == 'IN') {
+            foreach(array_keys($where) as $column){
 
-                $q->whereIn($column, $value);
-            }
-            elseif (strtoupper($operand) == 'NOT_IN') {
-
-                $q->whereNotIn($column, $value);
-            }
-            elseif (strtoupper($operand) == 'RAW') {
-
-                $q->whereRaw($column);
-            }
-            else {
-
+                $operand = '=';
+                $value = $where[$column];
                 $q->where($column, $operand, $value);
             }
         }

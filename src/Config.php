@@ -4,28 +4,11 @@ namespace Project\RestServer;
 
 class Config
 {
-    /*
-     *
-     * [
-     * 'auth.hash.key' => '',
-     * 'database.connections.CHANNEL_NAME' => '',
-     * 'app.model.dir' => '/models url full path',
-     * ]
-     */
-
-    public static function set($config)
-    {
-        foreach($config as $key => $value){
-
-            \Illuminate\Support\Facades\Config::set($key, $value);
-        }
-    }
-
     public static function model($name = null, $default = null)
     {
-        $dir = config('app.model.dir');
-        $namespace = config('app.model.namespace');
-        $alias = config('app.model.alias');
+        $dir = config('project.model.dir');
+        $namespace = config('project.model.namespace');
+        $alias = config('project.model.alias');
         if (isset($alias[$name]))
             $name = $alias[$name];
 

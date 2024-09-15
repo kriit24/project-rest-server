@@ -34,7 +34,7 @@ class VerifyPostMac
         //pre((string)$data['object_radius']);
         //pre($http_mac);
 
-        if( !config('auth.hash.key') ){
+        if( !config('project.hash.key') ){
 
             return $next($request);
         }

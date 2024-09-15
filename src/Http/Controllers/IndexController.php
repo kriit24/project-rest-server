@@ -28,7 +28,7 @@ class IndexController
 
         //die(pre($data));
 
-        $user_key = config('auth.hash.key');
+        $user_key = config('project.hash.key');
         $token['data'] = Crypto::init($user_key)->sign($data);
 
         if( !$token['data'] ) {

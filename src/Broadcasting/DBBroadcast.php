@@ -3,16 +3,18 @@
 namespace Project\RestServer\Broadcasting;
 
 
+use Closure;
+use Generator;
 use \Illuminate\Broadcasting\BroadcastException;
 use Pusher\ApiErrorException;
 
 class DBBroadcast
 {
-    private $pusher;
+    private $handler;
 
-    public function __construct($pusher)
+    public function __construct($handler)
     {
-        $this->pusher = new $pusher();
+        $this->handler = new $handler();
     }
 
     public function broadcast($channel, $event, $request)
@@ -27,7 +29,7 @@ class DBBroadcast
 
         try {
             //$channel, $event
-            $data = $this->pusher->trigger($payload, $request);
+            $data = $this->handler->trigger($payload, $request);
 
             new \Project\RestServer\Broadcasting\WebSocket();
         }
@@ -51,7 +53,7 @@ class DBBroadcast
 
         try {
             //$channel, $event
-            $data = $this->pusher->trigger($payload, $request);
+            $data = $this->handler->trigger($payload, $request);
         }
         catch (ApiErrorException $e) {
             throw new BroadcastException(
@@ -73,7 +75,7 @@ class DBBroadcast
 
         try {
             //$channel, $event
-            $data = $this->pusher->trigger($payload, $request);
+            $data = $this->handler->trigger($payload, $request);
         }
         catch (ApiErrorException $e) {
             throw new BroadcastException(
@@ -95,7 +97,16 @@ class DBBroadcast
 
         try {
             //$channel, $event
-            $data = $this->pusher->trigger($payload, $request);
+            $data = $this->handler->trigger($payload, $request);
+
+            if ($data instanceof Generator || $data instanceof Closure || $data instanceof \Illuminate\Support\LazyCollection) {
+
+                $rows = iterator_to_array($data);
+            }
+            else {
+
+                $rows = $data;
+            }
         }
         catch (ApiErrorException $e) {
             throw new BroadcastException(
@@ -103,6 +114,6 @@ class DBBroadcast
             );
         }
 
-        return $data;
+        return $rows;
     }
 }

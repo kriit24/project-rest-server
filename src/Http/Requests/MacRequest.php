@@ -54,7 +54,7 @@ class MacRequest
         $mac = $headers['http_mac'];
         $data = $request->input('data') ?: $request->post('data');
 
-        $user_key = config('auth.hash.key');
+        $user_key = config('project.hash.key');
         $ret = ['data' => Crypto::init($user_key)->verify($data, $mac)];
 
         if( $ret['data'] == 'data_verified_error' ) {

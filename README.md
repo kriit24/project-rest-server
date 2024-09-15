@@ -1,15 +1,18 @@
 # project-rest-server
 Project Rest Server is REST-api server for mysql  
-Its based on Laravel 10 framework
+Its based on Laravel 10+ framework
 
 ## Installation
-This project using composer.
+This project uses composer.
 ```
 $ composer require kriit24/project-rest-server
 ```
 
+#### # create tables
 
 ```
+DROP TABLE IF EXISTS table_relation;
+
 CREATE TABLE `table_relation` (
 	`table_relation_id` BIGINT(20) NOT NULL AUTO_INCREMENT,
 	`table_relation_table_name` VARCHAR(255) NOT NULL COLLATE 'utf8mb3_general_ci',
@@ -20,11 +23,12 @@ CREATE TABLE `table_relation` (
 	INDEX `table_relation_unique_id` (`table_relation_unique_id`) USING BTREE
 )
 COLLATE='utf8mb3_general_ci'
-ENGINE=InnoDB
-;
+ENGINE=InnoDB;
 
 
-CREATE TABLE IF NOT EXISTS `table_changes` (
+DROP TABLE IF EXISTS table_changes;
+
+CREATE TABLE `table_changes` (
     `table_changes_id` INT(11) NOT NULL AUTO_INCREMENT,
     `table_changes_table_name` VARCHAR(150) NOT NULL COLLATE 'utf8mb3_general_ci',
     `table_changes_table_id` BIGINT(20) NOT NULL DEFAULT '0',
@@ -38,7 +42,6 @@ ENGINE=InnoDB;
 
 
 DROP PROCEDURE IF EXISTS project_rest_event;
-
 
 DELIMITER //
 
@@ -66,39 +69,96 @@ DELIMITER ;
 
 ## Client for server  
 #### react-native: [project-rest-client](https://www.npmjs.com/package/project-rest-client)
-#### php: coming soon
 
 
 ## NB!  
 All the requests are POST methods because GET queries can distort data like umlauts and other special characters  
 If u use json_encode to compile data then allways use it with option JSON_UNESCAPED_UNICODE
 
-## Usage
 
-```php
+## Config
+
+#### # create file config/project.php
+
+```
+return [
+    'hash' => [
+        //128 AES key
+        //if u use dynamic hash key then leave empty. IF auth key is empty then mac is not checked
+        //u can generate key - Project\RestServer\Component\Crypto::generateKey()
+        'key' => ''
+    ],
+    'model' => [
+        'dir' => dirname(__DIR__) . '/app/Models',
+        'namespace' => '\App\Models',
+        //table to class name alias, lets say table is object, but in php u cannot make class object, so u add an alias objectT
+        'alias' => ['object' => 'objectT'],
+    ],
+];
+```
+
+#### # database connections must be based on channel name what named in request as {db} config/database.php
+
+```
 <?php
 
-//--- CONFIG ---
-//route/api.php
-$config = [
-    //128 AES key
-    //u can generate key - Project\RestServer\Component\Crypto::generateKey()
-    'auth.hash.key' => '',//if u use dynamic hash key then leave empty. IF auth key is empty then mac is not checked
-    'database.connections.CHANNEL_NAME' => config('database.connections.mysql'),
-    'app.model.dir' => dirname(__DIR__) . '/app/Models',
-    'app.model.namespace' => '\App\Models',
-    //table to class name alias, lets say table is object, but in php u cannot make class object, so u add an alias objectT
-    'app.model.alias' => ['object' => 'objectT'],
+return [
+
+    'connections' => [
+
+        //TEST
+        'localhost_1' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_LOCALHOST_1_HOST', '127.0.0.1'),
+            'port' => env('DB_LOCALHOST_1_PORT', '3306'),
+            'database' => env('DB_LOCALHOST_1_DATABASE', 'forge'),
+            'username' => env('DB_LOCALHOST_1_USERNAME', 'forge'),
+            'password' => env('DB_LOCALHOST_1_PASSWORD', ''),
+            'unix_socket' => env('DB_LOCALHOST_1_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+        'localhost_2' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_LOCALHOST_2_HOST', '127.0.0.1'),
+            'port' => env('DB_LOCALHOST_2_PORT', '3306'),
+            'database' => env('DB_LOCALHOST_2_DATABASE', 'forge'),
+            'username' => env('DB_LOCALHOST_2_USERNAME', 'forge'),
+            'password' => env('DB_LOCALHOST_2_PASSWORD', ''),
+            'unix_socket' => env('DB_LOCALHOST_2_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+    ],
 ];
-Project\RestServer\Config::set($config);
-//pre($config);
+
+```
 
 
-//--- AUTH AND DYNAMIC KEY ---
-//SET auth.hash.key for each user after Auth is done
-//OR use stationary in $config
-//app/Http/Middleware/Authenticate.php
-/*
+
+## Usage
+
+#### # auth example (app/Http/Middleware/Authenticate.php)
+
+```
+//SET project.hash.key for each user after Auth is done
+//OR use stationary in config/project.php
 namespace App\Http\Middleware;
 
 use App\Component\Auth;
@@ -117,16 +177,18 @@ class Authenticate
         if (($step = \App\Http\Requests\TokenRequest::isValid($check)) == 'ok') {
 
             $user_key = (new Auth())->UserData('user_key');//logged in user session
-            config(['auth.hash.key' => $user_key]);
+            config(['project.hash.key' => $user_key]);
             return $next($request);
         }
 
         return response('Unauthorized (' . $step . ').', 401);
     }
 }
- */
+ ```
 
-//--- ROUTES (routes/api.php) ---
+#### # routes example (routes/api.php)
+
+```
 
 Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Project\RestServer\Http\Middleware\VerifyPostMac::class])->group(function () {
 
@@ -200,18 +262,39 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
             );
             $data = $event->fetch($db, $model, $request);
 
-            if ($data instanceof Generator || $data instanceof Closure || $data instanceof \Illuminate\Support\LazyCollection) {
-
-                $rows = iterator_to_array($data);
-            }
-            else {
-
-                $rows = $data;
-            }
-
-            return response(['status' => 'ok', 'count' => count($rows), 'data' => $rows]);
+            return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
         }
         return response(['status' => 'error', 'message' => 'FETCH error:' . Project\RestServer\Http\Requests\ValidateRequest::getError()], 406);
+    });
+    
+    //make object API request
+    Route::post('/object', function (Request $request) {
+
+        $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
+        $to_request->request->add(['join' => ['address']]);
+        $to_request->request->add(['where' => $request->all()]);
+
+        $event = new Project\RestServer\Broadcasting\DBBroadcast(
+            Project\RestServer\Getter\MysqlGetter::class
+        );
+        $data = $event->fetch('localhost_1', 'object', $to_request);
+
+        return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
+    });
+    
+    //make object API GET request with or without object_id 
+    Route::get('/object/{object_id?}', function (Request $request, $object_id = null) {
+
+        $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
+        $to_request->request->add(['join' => ['address']]);
+        $to_request->request->add(['where' => array_filter(['object_id' => $object_id])]);
+
+        $event = new Project\RestServer\Broadcasting\DBBroadcast(
+            Project\RestServer\Getter\MysqlGetter::class
+        );
+        $data = $event->fetch('localhost_1', 'object', $to_request);
+
+        return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
     });
     
     //make event request for live
@@ -222,10 +305,9 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
     });
 });
 
-
+//LIVE request
 Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\Http\Middleware\VerifyGetMac::class])->group(function () {
 
-    //make live request
     Route::get('/live/{db}/{model}', function ($db, $model, Request $request) {
 
         if (Project\RestServer\Http\Requests\ValidateRequest::Fetch($db, $model, $request)) {
@@ -292,21 +374,21 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class])->
 
 
 #### PARAMS
-```php
+```
 $params = [
     //get all columns
     'column' => null,
     //get current columns
     'column' => ['column_1', 'column_2'],
-    //get all parent columns also "use" columns
+    //get all parent columns also "use statement" columns
     'column' => ['*'],
     //get join columns 
     'column' => ['child_table.child_table_column', 'child_table_1.child_table_2.child_table_column'],
-    //join sibling data 
+    //join sibling data, create "address" relationship method in App\Models\objectT
     'join' => ['join_1', 'join_2'],
     //use query as query builder
     'use' => ['use_1', 'use_2'],
-    //u can use operands line RAW
+    //u can use operands like RAW
     //if operand is RAW then first argument is used as where statement
     'where' => [['object_id', '=', 1]],
     'where' => [['object_id BETWEEN 1 AND 10', 'RAW']],
@@ -361,7 +443,7 @@ curl -i -X POST \
    -H "mac:ZTRhMGQyY2M3YWJkNDAxN2NmMThjY2I1MTU1Yjk2ZjEzYWZlYjYxNTk2Y2ZkMmE5YTczNzhkMmE2ZmI0ZjE4MzRkODcyMTY2M2YyOTc1MGRhZjBkMzY5M2EyMTZkYzQ0" \
    -d \
 '{"address_name":"test","data_unique_id":$unique_id}' \
- 'https://localhost/post/haldus_projectpartner_ee/address'
+ 'https://localhost/post/localhost_1/address'
 ```
 
 #### # setup relational parent table
@@ -392,10 +474,11 @@ class ObjectBeforeInsert
         }
     }
 }
-
 ```
 
-#### # request
+#### MORE EXAMPLES
+
+#### # request example - dynamic
 
 ```
 curl -i -X POST \
@@ -405,5 +488,14 @@ curl -i -X POST \
    -H "mac:ZTRhMGQyY2M3YWJkNDAxN2NmMThjY2I1MTU1Yjk2ZjEzYWZlYjYxNTk2Y2ZkMmE5YTczNzhkMmE2ZmI0ZjE4MzRkODcyMTY2M2YyOTc1MGRhZjBkMzY5M2EyMTZkYzQ0" \
    -d \
 '{"object_name":"test","table_relation_unique_id":$unique_id}' \
- 'https://localhost/post/haldus_projectpartner_ee/object'
+ 'https://localhost/post/localhost_1/object'
+```
+
+#### # request example - regular api
+
+```
+curl -i -X GET \
+   -H "uuid:KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg" \
+   -H "token:1ecbe474378a669d48560c0f4d875cf65bd73b06679dd9cd9d43f769aad8fb449206141189fd8cbef358daa8ebaaa6e017ba14c43567f42dac59a6266cf4292e" \
+ 'https://localhost/object/5'
 ```

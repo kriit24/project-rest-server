@@ -24,11 +24,7 @@ class MysqlGetter
 
         if (!$table) return [];
 
-        $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.' . Mysql::getConn(), $db);
-
-        $main = Mysql::init(new $class());
-
+        $main = (new $class())->setConnection($payload['db']);
         $relationShipColumns = self::select($main, $data);
 
         //die(pre($payload));
@@ -58,9 +54,9 @@ class MysqlGetter
             foreach ($rows as $row) {
 
                 $array = array_merge($row->toArray(), ['trigger' => 'fetch']);
-                if (isset($data['join']) && !empty($data['join'])) {
+                if (isset($data['with']) && !empty($data['with'])) {
 
-                    foreach ($data['join'] as $with) {
+                    foreach ($data['with'] as $with) {
 
                         $join_row = $row->$with;
                         $array[$with] = !empty($join_row) ? $join_row->toArray() : [];
@@ -111,7 +107,7 @@ class MysqlGetter
 
                     [$table, $col] = array_map('trim', explode('.', $column, 2));
 
-                    if (in_array($table, (array)$data['join'])) {
+                    if (in_array($table, (array)$data['with'])) {
 
                         $relationShipColumns[$table][] = $col;
                         unset($data['column'][$key]);

@@ -22,10 +22,7 @@ class MysqlPut
 
         if (!$table) return [];
 
-        //pre($payload);
-
-        $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.mysql_dynamic', $db);
+        if (!$payload['message']['where']) return [];
 
         $reflectionProperty = $reflectionClass->getProperty('primaryKey');
         $primaryKey = $reflectionProperty->getValue(new $class);
@@ -33,107 +30,30 @@ class MysqlPut
         $reflectionProperty = $reflectionClass->getProperty('fillable');
         $fillable = $reflectionProperty->getValue(new $class);
 
-        $dispatchesEvents = null;
-        if ($reflectionClass->hasProperty('dispatchesEvents')) {
-
-            $reflectionProperty = $reflectionClass->getProperty('dispatchesEvents');
-            $dispatchesEvents = $reflectionProperty->getValue(new $class);
-        }
-
-        $where = $payload['message']['where'];
-        $data = $payload['message']['set'];
-        if (isset($data['_id']))
-            unset($data['_id']);
-        if (isset($data['updated_at']))
-            unset($data['updated_at']);
-        if (isset($data['trigger']))
-            unset($data['trigger']);
+        $data = $payload['message'];
 
         //pre($data);
 
-        $main = new $class();
-        $arrayColumns = [];
-        foreach ($fillable as $col) {
+        $main = (new $class())->setConnection($payload['db']);
 
-            if (isset($data[$col]) || array_key_exists($col, $data))
-                $arrayColumns[] = $col;
-        }
-        $values = $data;
+        $bindings = Mysql::getBindings($fillable, $data['set']);
 
-        $bindings = (function () use ($fillable, $dispatchesEvents, $main, $primaryKey, &$arrayColumns, $values) {
+        if (!empty($bindings)) {
 
-            if ($dispatchesEvents) {
+            $rows = $main
+                ->when($data['where'], function ($q) use ($data) {
 
-                if (isset($values[$primaryKey]) && isset($dispatchesEvents['updating'])) {
+                    Mysql::whereArray($q, $data['where']);
+                })
+                //->when(true, fn($q) => die(pre(str_replace_array('?', array_map(function($val){ return "'".$val."'" ;}, $q->getBindings()), $q->toSql()))))
+                ->get();
 
-                    $dispatcher = $dispatchesEvents['updating'];
-                    new $dispatcher($values);
+            foreach ($rows as $row) {
 
-                    foreach ($fillable as $col) {
-
-                        if ((isset($values[$col]) || array_key_exists($col, $values)) && !in_array($col, $arrayColumns))
-                            $arrayColumns[] = $col;
-                    }
-                }
+                $row->fill($data['set'])->save();
             }
 
-            $returnValues = [];
-            if (!empty($values)) {
-
-                foreach ($arrayColumns as $col) {
-
-                    if ($main->hasAttributeMutator($col)) {
-
-                        $m = $main->setAttribute($col, $values[$col]);
-                        $ms = $m->getAttributes();
-                        $values[$col] = $ms[$col];
-                    }
-
-                    $val = $values[$col];
-                    if ($val === null)
-                        $returnValues[] = null;
-                    else
-                        $returnValues[] = $val;
-                }
-            }
-            return $returnValues;
-
-        })();
-
-        /*
-        if (isset($payload['header']['debug'])) {
-
-            die(pre(\Str::replaceArray('?', array_map(function ($val) {
-                return is_object($val) || is_array($val) ? "'" . print_r($val, true) . "'" : "'" . $val . "'";
-            }, $bindings), $sql
-            )));
-        }
-        */
-
-        if (!empty($arrayColumns) && !empty($bindings)) {
-
-            $q = Mysql::init(new $class())
-                ->when(1 == 1, function ($q) use ($where) {
-
-                    Mysql::whereArray($q, $where);
-                });
-
-            $q->update($data);
-            $rows = $q->select($primaryKey)->get();
-
-            $d = !empty($rows) ? array_map(function ($val) use ($primaryKey) {
-                return (object)[$primaryKey => $val];
-            }, $rows->pluck($primaryKey)->toArray()) : [];
-            $id = !empty($d) ? $d[0]->$primaryKey : null;
-
-            if ($dispatchesEvents && $id) {
-
-                if (isset($dispatchesEvents['updated'])) {
-
-                    $dispatcher = $dispatchesEvents['updated'];
-                    new $dispatcher(Mysql::init(null)->table($payload['model'])->where($primaryKey, $id)->first());
-                }
-            }
+            $d = !empty($rows) ? array_map(fn($val) => (object)[$primaryKey => $val], $rows->pluck($primaryKey)->toArray()) : [];
         }
 
         if (empty($d)) {
@@ -141,8 +61,8 @@ class MysqlPut
             return [];
         }
 
-        $data[$primaryKey] = $d[0]->$primaryKey;
+        $data['set'][$primaryKey] = count($d) == 1 ? $rows[0]->$primaryKey : array_map(fn($row) => $row->$primaryKey, $d);
 
-        return array_merge($data, ['trigger' => 'update']);
+        return array_merge($data['set'], ['trigger' => 'update']);
     }
 }

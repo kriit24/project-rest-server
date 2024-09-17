@@ -36,7 +36,7 @@ class VerifyGetMac
         $query_string = urldecode($request->get('query', ''));
         $http_mac = isset($headers['http_mac']) ? $headers['http_mac'] : null;
 
-        if( !config('auth.hash.key') ){
+        if( !config('project.hash.key') ){
 
             return $next($request);
         }

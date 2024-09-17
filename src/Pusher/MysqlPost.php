@@ -22,96 +22,26 @@ class MysqlPost
 
         if (!$table) return [];
 
-        //pre($payload);
-
-        $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.' . Mysql::getConn(), $db);
-
         $reflectionProperty = $reflectionClass->getProperty('primaryKey');
         $primaryKey = $reflectionProperty->getValue(new $class);
 
         $reflectionProperty = $reflectionClass->getProperty('fillable');
         $fillable = $reflectionProperty->getValue(new $class);
 
-        $dispatchesEvents = null;
-        if ($reflectionClass->hasProperty('dispatchesEvents')) {
-
-            $reflectionProperty = $reflectionClass->getProperty('dispatchesEvents');
-            $dispatchesEvents = $reflectionProperty->getValue(new $class);
-        }
-
         $data = $payload['message'];
-        if (isset($data['_id']))
-            unset($data['_id']);
-        if (isset($data['updated_at']))
-            unset($data['updated_at']);
-        if (isset($data['trigger']))
-            unset($data['trigger']);
 
         //pre($data);
 
-        $main = new $class();
-        $arrayColumns = [];
-        foreach ($fillable as $col) {
+        $main = (new $class())->setConnection($payload['db']);
 
-            if (isset($data[$col]) || array_key_exists($col, $data))
-                $arrayColumns[] = $col;
-        }
-        $values = $data;
+        $bindings = Mysql::getBindings($fillable, $data);
 
-        $bindings = (function () use ($fillable, $dispatchesEvents, $main, $primaryKey, &$arrayColumns, $values) {
+        if( !empty($bindings) ) {
 
-            if ($dispatchesEvents) {
-
-                if (!isset($values[$primaryKey]) && isset($dispatchesEvents['inserting'])) {
-
-                    $dispatcher = $dispatchesEvents['inserting'];
-                    new $dispatcher($values);
-
-                    foreach ($fillable as $col) {
-
-                        if ((isset($values[$col]) || array_key_exists($col, $values)) && !in_array($col, $arrayColumns))
-                            $arrayColumns[] = $col;
-                    }
-                }
-            }
-
-            $returnValues = [];
-            if( !empty($values) ) {
-
-                foreach ($arrayColumns as $col) {
-
-                    if ($main->hasAttributeMutator($col)) {
-
-                        $m = $main->setAttribute($col, $values[$col]);
-                        $ms = $m->getAttributes();
-                        $values[$col] = $ms[$col];
-                    }
-
-                    $val = $values[$col];
-                    if ($val === null)
-                        $returnValues[$col] = null;
-                    else
-                        $returnValues[$col] = $val;
-                }
-            }
-            return $returnValues;
-
-        })();
-
-        if( !empty($arrayColumns) && !empty($bindings) ) {
-
-            $id = Mysql::init(null)->table($payload['model'])->insertGetId($bindings);
+            $id = $main
+                ->create($bindings)
+                ->$primaryKey;
             $d = [(object)[$primaryKey => $id]];
-
-            if ($dispatchesEvents && $id) {
-
-                if (isset($dispatchesEvents['inserted'])) {
-
-                    $dispatcher = $dispatchesEvents['inserted'];
-                    new $dispatcher(Mysql::init(null)->table($payload['model'])->where($primaryKey, $id)->first());
-                }
-            }
         }
 
         if (empty($d)) {

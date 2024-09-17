@@ -1,6 +1,6 @@
 # project-rest-server
 Project Rest Server is REST-api server for mysql  
-Its based on Laravel 10+ framework
+Its based on Laravel 9+ framework
 
 ## Installation
 This project uses composer.
@@ -155,6 +155,7 @@ return [
 ## Usage
 
 #### # auth example (app/Http/Middleware/Authenticate.php)
+#### NB!!! This is custom made Authenticate class
 
 ```
 //SET project.hash.key for each user after Auth is done
@@ -189,7 +190,7 @@ class Authenticate
 #### # routes example (routes/api.php)
 
 ```
-
+//DYNAMIC request for react native
 Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Project\RestServer\Http\Middleware\VerifyPostMac::class])->group(function () {
 
     //make insert request
@@ -200,7 +201,7 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
             $event = new Project\RestServer\Broadcasting\DBBroadcast(
                 Project\RestServer\Pusher\MysqlPost::class
             );
-            $data = $event->broadcast($db, $model, $request);
+            $data = $event->post($db, $model, $request);
 
             return response(['status' => 'ok', 'count' => !empty($data) ? 1 : 0, 'data' => $data]);
         }
@@ -215,7 +216,7 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
             $event = new Project\RestServer\Broadcasting\DBBroadcast(
                 Project\RestServer\Pusher\MysqlPut::class
             );
-            $data = $event->broadcast($db, $model, $request);
+            $data = $event->post($db, $model, $request);
 
             return response(['status' => 'ok', 'count' => !empty($data) ? 1 : 0, 'data' => $data]);
         }
@@ -230,7 +231,7 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
             $event = new Project\RestServer\Broadcasting\DBBroadcast(
                 Project\RestServer\Pusher\MysqlPush::class
             );
-            $data = $event->broadcast($db, $model, $request);
+            $data = $event->post($db, $model, $request);
 
             return response(['status' => 'ok', 'count' => !empty($data) ? 1 : 0, 'data' => $data]);
         }
@@ -245,7 +246,7 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
             $event = new Project\RestServer\Broadcasting\DBBroadcast(
                 Project\RestServer\Pusher\MysqlDelete::class
             );
-            $data = $event->broadcast($db, $model, $request);
+            $data = $event->delete($db, $model, $request);
 
             return response(['status' => 'ok', 'count' => !empty($data) ? 1 : 0, 'data' => $data]);
         }
@@ -267,41 +268,73 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
         return response(['status' => 'error', 'message' => 'FETCH error:' . Project\RestServer\Http\Requests\ValidateRequest::getError()], 406);
     });
     
-    //make object API request
-    Route::post('/object', function (Request $request) {
-
-        $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
-        $to_request->request->add(['join' => ['address']]);
-        $to_request->request->add(['where' => $request->all()]);
-
-        $event = new Project\RestServer\Broadcasting\DBBroadcast(
-            Project\RestServer\Getter\MysqlGetter::class
-        );
-        $data = $event->fetch('localhost_1', 'object', $to_request);
-
-        return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
-    });
-    
-    //make object API GET request with or without object_id 
-    Route::get('/object/{object_id?}', function (Request $request, $object_id = null) {
-
-        $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
-        $to_request->request->add(['join' => ['address']]);
-        $to_request->request->add(['where' => array_filter(['object_id' => $object_id])]);
-
-        $event = new Project\RestServer\Broadcasting\DBBroadcast(
-            Project\RestServer\Getter\MysqlGetter::class
-        );
-        $data = $event->fetch('localhost_1', 'object', $to_request);
-
-        return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
-    });
-    
     //make event request for live
     Route::post('/event/{db}/{model}', function ($db, $model, Request $request) {
 
         $ret = \Project\RestServer\Component\Event::handle($db, $model, $request);
         return response($ret);
+    });
+});
+
+//API request
+Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\Http\Middleware\VerifyPostMac::class])->group(function () {
+
+    $eventGet = new Project\RestServer\Broadcasting\DBBroadcast(
+        Project\RestServer\Getter\MysqlGetter::class
+    );
+    $eventPost = new Project\RestServer\Broadcasting\DBBroadcast(
+        Project\RestServer\Pusher\MysqlPost::class
+    );
+    $eventPut = new Project\RestServer\Broadcasting\DBBroadcast(
+        Project\RestServer\Pusher\MysqlPut::class
+    );
+    $eventDelete = new Project\RestServer\Broadcasting\DBBroadcast(
+        Project\RestServer\Pusher\MysqlDelete::class
+    );
+
+    Route::prefix('object')->group(function () use ($eventDelete, $eventPost, $eventPut, $eventGet) {
+
+        //make object API request
+        Route::get('/{object_id?}', function (Request $request, $object_id = null) use ($eventGet) {
+
+            $to_request = \Project\RestServer\Http\Requests\ToRequest::Get();
+            $to_request->request->add(['with' => ['address']]);
+            $to_request->request->add(['where' => array_filter(['object_id' => $object_id])]);
+            $data = $eventGet->fetch('haldus_projectpartner_ee', 'object', $to_request);
+
+            return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
+        });
+
+        //make object API delete request
+        Route::get('/delete/{object_id}', function (Request $request, $object_id) use ($eventDelete, $eventGet) {
+
+            $to_request = \Project\RestServer\Http\Requests\ToRequest::Get();
+            $to_request->request->add(['where' => ['object_id' => $object_id]]);
+            $data = $eventDelete->delete('haldus_projectpartner_ee', 'object', $to_request);
+
+            return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
+        });
+
+        //make insert request
+        Route::post('/', function (Request $request) use ($eventPut, $eventPost) {
+
+            $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
+            $to_request->request->add($request->all());
+            $data = $eventPost->post('haldus_projectpartner_ee', 'object', $to_request);
+
+            return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
+        });
+
+        //make update request
+        Route::post('/{object_id?}', function (Request $request, $object_id) use ($eventPut, $eventPost) {
+
+            $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
+            $to_request->request->add(['set' => $request->all()]);
+            $to_request->request->add(['where' => ['object_id' => $object_id]]);
+            $data = $eventPut->post('haldus_projectpartner_ee', 'object', $to_request);
+
+            return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
+        });
     });
 });
 
@@ -375,6 +408,7 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class])->
 
 #### PARAMS
 ```
+//GET,LIVE
 $params = [
     //get all columns
     'column' => null,
@@ -385,7 +419,7 @@ $params = [
     //get join columns 
     'column' => ['child_table.child_table_column', 'child_table_1.child_table_2.child_table_column'],
     //join sibling data, create "address" relationship method in App\Models\objectT
-    'join' => ['join_1', 'join_2'],
+    'with' => ['join_1', 'join_2'],
     //use query as query builder
     'use' => ['use_1', 'use_2'],
     //u can use operands like RAW
@@ -397,6 +431,25 @@ $params = [
     'order' => [["object_id", "DESC"], ["object_name", "ASC"]],
     'limit' => 1,
     'offset' => 10,
+];
+//POST
+$params = [
+    'column' => 'value',
+];
+//PUT,PUSH
+$params = [
+    'set' => [
+        'column' => 'value'
+    ],
+    'where' => [
+        ['column', 'operator', 'value']
+    ],
+];
+//DELETE
+$params = [
+    'where' => [
+        ['column', 'operator', 'value']
+    ],
 ];
 ```
 

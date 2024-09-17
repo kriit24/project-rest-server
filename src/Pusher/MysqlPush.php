@@ -22,135 +22,36 @@ class MysqlPush
 
         if (!$table) return [];
 
-        //pre($payload);
-
-        $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.' . Mysql::getConn(), $db);
-
         $reflectionProperty = $reflectionClass->getProperty('primaryKey');
         $primaryKey = $reflectionProperty->getValue(new $class);
 
         $reflectionProperty = $reflectionClass->getProperty('fillable');
         $fillable = $reflectionProperty->getValue(new $class);
 
-        $dispatchesEvents = null;
-        if ($reflectionClass->hasProperty('dispatchesEvents')) {
-
-            $reflectionProperty = $reflectionClass->getProperty('dispatchesEvents');
-            $dispatchesEvents = $reflectionProperty->getValue(new $class);
-        }
-
         $data = $payload['message'];
-        if (isset($data['_id']))
-            unset($data['_id']);
-        if (isset($data['updated_at']))
-            unset($data['updated_at']);
-        if (isset($data['trigger']))
-            unset($data['trigger']);
 
-        //pre($data);
+        //die(pre($data));
 
-        $main = new $class();
-        $arrayColumns = [];
-        foreach ($fillable as $col) {
+        $main = (new $class())->setConnection($payload['db']);
 
-            if (isset($data[$col]) || array_key_exists($col, $data))
-                $arrayColumns[] = $col;
-        }
-        $values = $data;
+        $bindings = Mysql::getBindings($fillable, $data['set']);
 
-        $bindings = (function () use ($fillable, $dispatchesEvents, $main, $primaryKey, &$arrayColumns, $values) {
+        if (!empty($bindings)) {
 
-            if ($dispatchesEvents) {
+            $main->updateOrCreate($data['where'] ?: $data['set'], $data['set']);
+            $rows = $main
+                ->when($data['where'], function ($q) use ($data) {
 
-                if (!isset($values[$primaryKey]) && isset($dispatchesEvents['inserting'])) {
+                    Mysql::whereArray($q, $data['where']);
+                })
+                ->when(!$data['where'] && $data['set'], function ($q) use ($data) {
 
-                    $dispatcher = $dispatchesEvents['inserting'];
-                    new $dispatcher($values);
+                    Mysql::whereArray($q, $data['set']);
+                })
+                //->when(true, fn($q) => die(pre(str_replace_array('?', array_map(function($val){ return "'".$val."'" ;}, $q->getBindings()), $q->toSql()))))
+                ->get();
 
-                    foreach ($fillable as $col) {
-
-                        if ((isset($values[$col]) || array_key_exists($col, $values)) && !in_array($col, $arrayColumns))
-                            $arrayColumns[] = $col;
-                    }
-                }
-                if (isset($values[$primaryKey]) && isset($dispatchesEvents['updating'])) {
-
-                    $dispatcher = $dispatchesEvents['updating'];
-                    new $dispatcher($values);
-
-                    foreach ($fillable as $col) {
-
-                        if ((isset($values[$col]) || array_key_exists($col, $values)) && !in_array($col, $arrayColumns))
-                            $arrayColumns[] = $col;
-                    }
-                }
-            }
-
-            $returnValues = [];
-            if( !empty($values) ) {
-
-                foreach ($arrayColumns as $col) {
-
-                    if ($main->hasAttributeMutator($col)) {
-
-                        $m = $main->setAttribute($col, $values[$col]);
-                        $ms = $m->getAttributes();
-                        $values[$col] = $ms[$col];
-                    }
-
-                    $val = $values[$col];
-                    if ($val === null)
-                        $returnValues[] = null;
-                    else
-                        $returnValues[] = $val;
-                }
-            }
-            return $returnValues;
-
-        })();
-
-        $sql = "
-            INSERT INTO `" . $table . "` (" . implode(',', $arrayColumns) . ")
-
-            VALUES (" . implode(',', array_map(function () {
-                return '?';
-            }, $arrayColumns)) . ")" .
-
-            " ON DUPLICATE KEY UPDATE " .
-
-            implode(',', array_map(function ($col) {
-                    return '`' . $col . '` = VALUES(`' . $col . '`)';
-                }, $arrayColumns)
-            )
-            . " RETURNING " . $primaryKey . "  ";
-
-        if (isset($payload['header']['debug'])) {
-
-            die(pre(\Str::replaceArray('?', array_map(function ($val) {
-                return is_object($val) || is_array($val) ? "'" . print_r($val, true) . "'" : "'" . $val . "'";
-            }, $bindings), $sql
-            )));
-        }
-
-        if( !empty($arrayColumns) && !empty($bindings) ) {
-
-            $d = Mysql::init(null)->select($sql, $bindings);
-            $id = !empty($d) ? array_map(fn ($v) => $v->$primaryKey, $d) : null;
-
-            if ($dispatchesEvents && $id) {
-
-                if (isset($dispatchesEvents['inserted'])) {
-
-                    $dispatcher = $dispatchesEvents['inserted'];
-                    new $dispatcher(Mysql::init(null)->table($payload['model'])->where($primaryKey, $id)->get());
-                }
-                if (isset($dispatchesEvents['updated'])) {
-
-                    $dispatcher = $dispatchesEvents['updated'];
-                    new $dispatcher(Mysql::init(null)->table($payload['model'])->where($primaryKey, $id)->get());
-                }
-            }
+            $d = !empty($rows) ? array_map(fn($val) => (object)[$primaryKey => $val], $rows->pluck($primaryKey)->toArray()) : [];
         }
 
         if (empty($d)) {
@@ -158,8 +59,8 @@ class MysqlPush
             return [];
         }
 
-        $data[$primaryKey] = $id;
+        $data['set'][$primaryKey] = count($d) == 1 ? $rows[0]->$primaryKey : array_map(fn($row) => $row->$primaryKey, $d);
 
-        return array_merge($data, ['trigger' => 'upsert']);
+        return array_merge($data['set'], ['trigger' => 'upsert']);
     }
 }

@@ -22,42 +22,35 @@ class MysqlDelete
 
         if (!$table) return [];
 
-        $db = config('database.connections.' . $payload['db']);
-        Config::set('database.connections.' . Mysql::getConn(), $db);
-
         $reflectionProperty = $reflectionClass->getProperty('primaryKey');
         $primaryKey = $reflectionProperty->getValue(new $class);
 
-        $reflectionProperty = $reflectionClass->getProperty('fillable');
-        $fillable = $reflectionProperty->getValue(new $class);
-
-        $dispatchesEvents = null;
-        if ($reflectionClass->hasProperty('dispatchesEvents')) {
-
-            $reflectionProperty = $reflectionClass->getProperty('dispatchesEvents');
-            $dispatchesEvents = $reflectionProperty->getValue(new $class);
-        }
-
         $data = $payload['message'];
-        if ($data[$primaryKey]) {
 
-            if (isset($dispatchesEvents['deleting'])) {
+        $main = (new $class())->setConnection($payload['db']);
 
-                $dispatcher = $dispatchesEvents['deleting'];
-                new $dispatcher($data);
+        if ($data['where']) {
+
+            $rows = $main
+                ->when($data['where'], function ($q) use ($data) {
+
+                    Mysql::whereArray($q, $data['where']);
+                })
+                //->when(true, fn($q) => die(pre(str_replace_array('?', array_map(function($val){ return "'".$val."'" ;}, $q->getBindings()), $q->toSql()))))
+                ->get();
+
+            $d = !empty($rows) ? array_map(fn($val) => (object)[$primaryKey => $val], $rows->pluck($primaryKey)->toArray()) : [];
+
+            foreach ($rows as $row) {
+
+                $row->delete();
             }
-
-            $d = Mysql::init(null)->select("DELETE FROM `" . $table . "` WHERE `" . $primaryKey . "`= ? RETURNING " . implode(',', $fillable), [$data[$primaryKey]]);
 
             if (!empty($d)) {
 
-                if (isset($dispatchesEvents['deleted'])) {
+                $data['set'][$primaryKey] = count($d) == 1 ? $rows[0]->$primaryKey : array_map(fn($row) => $row->$primaryKey, $d);
 
-                    $dispatcher = $dispatchesEvents['deleted'];
-                    new $dispatcher($data, $d);
-                }
-
-                return array_merge((array)$d[0], ['trigger' => 'delete']);
+                return array_merge($data['set'], ['trigger' => 'delete']);
             }
         }
 

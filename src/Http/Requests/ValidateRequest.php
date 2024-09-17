@@ -127,7 +127,7 @@ class ValidateRequest
 
         if (self::Broadcast($db, $model, $request)) {
 
-            if ($request->post($model . '_id')) {
+            if ($request->post('where')) {
 
                 return true;
             }

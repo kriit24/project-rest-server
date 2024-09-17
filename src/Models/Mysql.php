@@ -22,10 +22,34 @@ class Mysql extends DB
         }
     }
 
+    public static function getBindings($fillable, $values)
+    {
+        $arrayColumns = [];
+        foreach ($fillable as $col) {
+
+            if (isset($values[$col]) || array_key_exists($col, $values))
+                $arrayColumns[] = $col;
+        }
+
+        $returnValues = [];
+        if( !empty($values) ) {
+
+            foreach ($arrayColumns as $col) {
+
+                $val = $values[$col];
+                if ($val === null)
+                    $returnValues[$col] = null;
+                else
+                    $returnValues[$col] = $val;
+            }
+        }
+        return $returnValues;
+    }
+
     public static function builder($q, $data)
     {
         return $q
-            ->when(1 == 1, function ($q) use ($data) {
+            ->when(isset($data['where']), function ($q) use ($data) {
 
                 Mysql::whereArray($q, $data['where']);
             })

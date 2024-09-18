@@ -387,12 +387,10 @@ App\Models\address.php - set event after inserted
 protected $dispatchesEvents = [
     'inserted' => AddressAfterInsert::class,
 ];
-
-//App\Models\Event\AddressAfterInsert.php - call relation
-
 ```
 
 App\Models\Events\AddressAfterInsert.php
+
 ```
 declare(strict_types=1);
 
@@ -416,7 +414,6 @@ App\Models\objectT.php - set event before insert
  protected $dispatchesEvents = [
     'inserting' => ObjectBeforeInsert::class,
 ];
-
 ```
 
 App\Models\Events\ObjectBeforeInsert.php - get relation id

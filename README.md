@@ -389,7 +389,7 @@ protected $dispatchesEvents = [
 ];
 ```
 
-App\Models\Events\AddressAfterInsert.php
+App\Models\Events\AddressAfterInsert.php - set relation
 
 ```
 declare(strict_types=1);
@@ -416,7 +416,7 @@ App\Models\objectT.php - set event before insert
 ];
 ```
 
-App\Models\Events\ObjectBeforeInsert.php - get relation id
+App\Models\Events\ObjectBeforeInsert.php - get relation by unique_id
 
 ```
 declare(strict_types=1);

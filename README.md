@@ -107,31 +107,9 @@ return [
 ```
 //SET project.hash.key for each user after Auth is done
 //OR use stationary in config/project.php
-namespace App\Http\Middleware;
 
-use App\Component\Auth;
-use Closure;
-
-class Authenticate
-{
-    public function handle($request, Closure $next, $guard = null)
-    {
-        $check = $request;
-        if( $request->get('uuid') && $request->get('token') ){
-
-            $check = $request->all();
-        }
-
-        if (($step = \App\Http\Requests\TokenRequest::isValid($check)) == 'ok') {
-
-            $user_key = (new Auth())->UserData('user_key');//logged in user session
-            config(['project.hash.key' => $user_key]);
-            return $next($request);
-        }
-
-        return response('Unauthorized (' . $step . ').', 401);
-    }
-}
+$user_key = (new Auth())->UserData('user_key');//logged in user session
+config(['project.hash.key' => $user_key]);
  ```
 
 #### # routes example (routes/api.php)

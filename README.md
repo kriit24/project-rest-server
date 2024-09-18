@@ -3,68 +3,15 @@ Project Rest Server is REST-api server for mysql
 Its based on Laravel 9+ framework
 
 ## Installation
-This project uses composer.
+#### # install from composer
 ```
-$ composer require kriit24/project-rest-server
+composer require kriit24/project-rest-server
 ```
 
-#### # create tables
+#### # install package migrations
 
 ```
-DROP TABLE IF EXISTS table_relation;
-
-CREATE TABLE `table_relation` (
-	`table_relation_id` BIGINT(20) NOT NULL AUTO_INCREMENT,
-	`table_relation_table_name` VARCHAR(255) NOT NULL COLLATE 'utf8mb3_general_ci',
-	`table_relation_table_id` BIGINT(20) NOT NULL,
-	`table_relation_unique_id` VARCHAR(255) NOT NULL COLLATE 'utf8mb3_general_ci',
-	`table_relation_created_at` TIMESTAMP NOT NULL DEFAULT current_timestamp(),
-	PRIMARY KEY (`table_relation_id`) USING BTREE,
-	INDEX `table_relation_unique_id` (`table_relation_unique_id`) USING BTREE
-)
-COLLATE='utf8mb3_general_ci'
-ENGINE=InnoDB;
-
-
-DROP TABLE IF EXISTS table_changes;
-
-CREATE TABLE `table_changes` (
-    `table_changes_id` INT(11) NOT NULL AUTO_INCREMENT,
-    `table_changes_table_name` VARCHAR(150) NOT NULL COLLATE 'utf8mb3_general_ci',
-    `table_changes_table_id` BIGINT(20) NOT NULL DEFAULT '0',
-    `table_changes_updated_at` DATETIME NULL DEFAULT NULL,
-    PRIMARY KEY (`table_changes_id`) USING BTREE,
-    UNIQUE INDEX `table_changes_table_name_table_changes_table_id` (`table_changes_table_name`, `table_changes_table_id`) USING BTREE,
-    INDEX `table_changes_updated_at` (`table_changes_updated_at`) USING BTREE
-)
-COLLATE='utf8mb3_general_ci'
-ENGINE=InnoDB;
-
-
-DROP PROCEDURE IF EXISTS project_rest_event;
-
-DELIMITER //
-
-CREATE PROCEDURE `project_rest_event`(IN `table_name` VARCHAR(150),IN `table_id` INT)
-    LANGUAGE SQL
-    DETERMINISTIC
-    CONTAINS SQL
-    SQL SECURITY DEFINER
-    COMMENT ''
-    BEGIN
-    
-        INSERT INTO table_changes (table_changes_table_name, table_changes_table_id, table_changes_updated_at)
-
-			SELECT table_name, table_id, NOW()
-			
-			ON DUPLICATE KEY UPDATE
-			table_changes_updated_at = NOW();
-    
-    END;
-    
-//    
-    
-DELIMITER ;
+php artisan project-rest-serve:install
 ```
 
 ## Client for server  

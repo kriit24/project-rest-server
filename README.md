@@ -445,32 +445,31 @@ class ObjectBeforeInsert
 ```
 $unique_id = unique_id();
 ```
+Insert child row
 
 ```
 curl -i -X POST \
    -H "uuid:KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg" \
    -H "token:5751d40d2e9ab5a163d772fbc6d8f7027180ad65f1345cf60534b5d0d1f04facd35271987f05e0c8c9e8b5ba6a881bbe7bcce7521d5d995bdf08bc2ea00bc7dd" \
    -H "Content-Type:application/json" \
-   -H "mac:ZTRhMGQyY2M3YWJkNDAxN2NmMThjY2I1MTU1Yjk2ZjEzYWZlYjYxNTk2Y2ZkMmE5YTczNzhkMmE2ZmI0ZjE4MzRkODcyMTY2M2YyOTc1MGRhZjBkMzY5M2EyMTZkYzQ0" \
    -d \
 '{"address_name":"test","data_unique_id":$unique_id}' \
  'https://localhost/post/localhost_1/address'
 ```
 
-#### MORE EXAMPLES
-
-#### # request example - dynamic
+Insert parent row
 
 ```
 curl -i -X POST \
    -H "uuid:KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg" \
    -H "token:5751d40d2e9ab5a163d772fbc6d8f7027180ad65f1345cf60534b5d0d1f04facd35271987f05e0c8c9e8b5ba6a881bbe7bcce7521d5d995bdf08bc2ea00bc7dd" \
    -H "Content-Type:application/json" \
-   -H "mac:ZTRhMGQyY2M3YWJkNDAxN2NmMThjY2I1MTU1Yjk2ZjEzYWZlYjYxNTk2Y2ZkMmE5YTczNzhkMmE2ZmI0ZjE4MzRkODcyMTY2M2YyOTc1MGRhZjBkMzY5M2EyMTZkYzQ0" \
    -d \
 '{"object_name":"test","table_relation_unique_id":$unique_id}' \
  'https://localhost/post/localhost_1/object'
 ```
+
+#### MORE EXAMPLES
 
 #### # request example - regular api
 

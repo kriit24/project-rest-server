@@ -382,15 +382,18 @@ $params = [
 
 #### # setup relational child table
 
-
+App\Models\address.php - set event after inserted
 ```
-//App\Models\address.php - set relation after inserted
 protected $dispatchesEvents = [
     'inserted' => AddressAfterInsert::class,
 ];
 
 //App\Models\Event\AddressAfterInsert.php - call relation
 
+```
+
+App\Models\Events\AddressAfterInsert.php
+```
 declare(strict_types=1);
 
 namespace App\Models\Events;
@@ -408,13 +411,17 @@ class AddressAfterInsert extends address
 
 #### # setup relational parent table
 
+App\Models\objectT.php - set event before insert
 ```
-//App\Models\objectT.php - set relation before insert
  protected $dispatchesEvents = [
     'inserting' => ObjectBeforeInsert::class,
 ];
 
-//App\Models\Events\ObjectBeforeInsert.php - get relation id
+```
+
+App\Models\Events\ObjectBeforeInsert.php - get relation id
+
+```
 declare(strict_types=1);
 
 namespace App\Models\Events;

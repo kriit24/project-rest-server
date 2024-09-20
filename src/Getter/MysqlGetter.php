@@ -17,7 +17,7 @@ class MysqlGetter
         $data = $payload['message'];
         if ($data['join'] && !$data['with']) $data['with'] = $data['join'];
 
-        $class = \Project\RestServer\Config::model($payload['model'], \Project\RestServer\Models\Mysql::class);
+        $class = \Project\RestServer\Config::model($payload['model']);
 
         $reflectionClass = new \ReflectionClass($class);
         $reflectionProperty = $reflectionClass->getProperty('table');

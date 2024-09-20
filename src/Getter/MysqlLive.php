@@ -29,7 +29,7 @@ class MysqlLive
         if (!isset(self::$event[$name])) {
 
             $table = $payload['model'];
-            $class = \Project\RestServer\Config::model($table, \Project\RestServer\Models\Mysql::class);
+            $class = \Project\RestServer\Config::model($table);
 
             $reflectionClass = new \ReflectionClass($class);
             $reflectionProperty = $reflectionClass->getProperty('primaryKey');

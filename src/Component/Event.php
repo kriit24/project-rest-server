@@ -9,7 +9,7 @@ class Event
 {
     public static function handle($db_name, $model, $request)
     {
-        $class = \Project\RestServer\Config::model($model, \Project\RestServer\Models\Mysql::class);
+        $class = \Project\RestServer\Config::model($model);
 
         $reflectionClass = new \ReflectionClass($class);
         $reflectionProperty = $reflectionClass->getProperty('table');

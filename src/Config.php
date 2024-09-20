@@ -4,7 +4,7 @@ namespace Project\RestServer;
 
 class Config
 {
-    public static function model($name = null, $default = null)
+    public static function model($name = null)
     {
         $dir = config('project.model.dir');
         $namespace = config('project.model.namespace');
@@ -20,7 +20,7 @@ class Config
 
                 return $namespace . '\\' . $name;
             }
-            return $default;
+            return $name;
         }
 
         //app/models/class

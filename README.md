@@ -99,6 +99,17 @@ return [
 
 ```
 
+#### # live config
+
+```
+//ADD desired trigger on each table 
+
+CREATE TRIGGER `object_after_update` AFTER UPDATE ON `object` FOR EACH ROW BEGIN
+
+CALL project_rest_event('object', OLD.object_id);
+
+END
+```
 
 
 ## Usage
@@ -480,4 +491,26 @@ curl -i -X GET \
    -H "uuid:KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg" \
    -H "token:1ecbe474378a669d48560c0f4d875cf65bd73b06679dd9cd9d43f769aad8fb449206141189fd8cbef358daa8ebaaa6e017ba14c43567f42dac59a6266cf4292e" \
  'https://localhost/object/5'
+```
+
+LIVE testing
+
+```
+<script type="text/javascript">
+    //const evtSource = new EventSource("sse.php");
+    const uuid = 'KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg';
+    const token = '92ff8dcf2223508fe3c1228ac39f5d68af9eb38ea274d90f87d9262e25c9e2e8d78eb595083ff69dc7a80acd16494b68b7a85e220b6596cba0dfac5e4ff373b9';
+    const query = encodeURIComponent('{"column":null,"with":["address"],"use":null,"where":null,"group":null,"order":null,"limit":10,"offset":0}');
+
+    //full - get full json (when false then u get only updates)
+    let url = 'https://localhost/live/localhost_1/object?full=false&uuid=' + uuid + '&token=' + token +
+        '&query=' + query;
+
+    const evtSource = new EventSource(url);
+
+    evtSource.addEventListener("message", (e) => {
+        console.log(e.data);
+    });
+</script>
+
 ```

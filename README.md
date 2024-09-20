@@ -497,19 +497,18 @@ LIVE testing
 
 ```
 <script type="text/javascript">
-    //const evtSource = new EventSource("sse.php");
     const uuid = 'KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg';
     const token = '92ff8dcf2223508fe3c1228ac39f5d68af9eb38ea274d90f87d9262e25c9e2e8d78eb595083ff69dc7a80acd16494b68b7a85e220b6596cba0dfac5e4ff373b9';
     const query = encodeURIComponent('{"column":null,"with":["address"],"use":null,"where":null,"group":null,"order":null,"limit":10,"offset":0}');
 
-    //full - get full json (when false then u get only updates)
+    //full - get full json (when false then u get only updated rows)
     let url = 'https://localhost/live/localhost_1/object?full=false&uuid=' + uuid + '&token=' + token +
         '&query=' + query;
 
     const evtSource = new EventSource(url);
 
     evtSource.addEventListener("message", (e) => {
-        console.log(e.data);
+        console.log(JSON.parse(e.data));
     });
 </script>
 

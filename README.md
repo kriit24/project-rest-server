@@ -215,7 +215,7 @@ Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Pr
 });
 
 //API request
-Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\Http\Middleware\VerifyPostMac::class])->group(function () {
+Route::middleware([\App\Http\Middleware\Authenticate::class])->group(function () {
 
     $eventGet = new Project\RestServer\Broadcasting\DBBroadcast(
         Project\RestServer\Getter\MysqlGetter::class
@@ -226,11 +226,14 @@ Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\
     $eventPut = new Project\RestServer\Broadcasting\DBBroadcast(
         Project\RestServer\Pusher\MysqlPut::class
     );
+    $eventPush = new Project\RestServer\Broadcasting\DBBroadcast(
+        Project\RestServer\Pusher\MysqlPush::class
+    );
     $eventDelete = new Project\RestServer\Broadcasting\DBBroadcast(
         Project\RestServer\Pusher\MysqlDelete::class
     );
 
-    Route::prefix('object')->group(function () use ($eventDelete, $eventPost, $eventPut, $eventGet) {
+    Route::prefix('object')->group(function () use ($eventPush, $eventDelete, $eventPost, $eventPut, $eventGet) {
 
         //make object API request
         Route::get('/{object_id?}', function (Request $request, $object_id = null) use ($eventGet) {
@@ -238,7 +241,7 @@ Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\
             $to_request = \Project\RestServer\Http\Requests\ToRequest::Get();
             $to_request->request->add(['with' => ['address']]);
             $to_request->request->add(['where' => array_filter(['object_id' => $object_id])]);
-            $data = $eventGet->fetch(config('database.default'), \App\Models\objectT::class, $to_request);
+            $data = $eventGet->fetch('haldus_projectpartner_ee', \App\Models\objectT::class, $to_request);
 
             return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
         });
@@ -248,7 +251,7 @@ Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\
 
             $to_request = \Project\RestServer\Http\Requests\ToRequest::Get();
             $to_request->request->add(['where' => ['object_id' => $object_id]]);
-            $data = $eventDelete->delete(config('database.default'), \App\Models\objectT::class, $to_request);
+            $data = $eventDelete->delete('haldus_projectpartner_ee', \App\Models\objectT::class, $to_request);
 
             return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
         });
@@ -258,18 +261,29 @@ Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\
 
             $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
             $to_request->request->add($request->all());
-            $data = $eventPost->post(config('database.default'), \App\Models\objectT::class, $to_request);
+            $data = $eventPost->post('haldus_projectpartner_ee', \App\Models\objectT::class, $to_request);
+
+            return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
+        });
+
+        //make push request
+        Route::post('/push/{object_id?}', function (Request $request, $object_id = null) use ($eventPush) {
+
+            $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
+            $to_request->request->add(['set' => $request->all()]);
+            $to_request->request->add(['where' => array_filter(['object_id' => $object_id])]);
+            $data = $eventPush->post('haldus_projectpartner_ee', \App\Models\objectT::class, $to_request);
 
             return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
         });
 
         //make update request
-        Route::post('/{object_id?}', function (Request $request, $object_id) use ($eventPut, $eventPost) {
+        Route::post('/{object_id}', function (Request $request, $object_id) use ($eventPut) {
 
             $to_request = \Project\RestServer\Http\Requests\ToRequest::Post();
             $to_request->request->add(['set' => $request->all()]);
             $to_request->request->add(['where' => ['object_id' => $object_id]]);
-            $data = $eventPut->post(config('database.default'), \App\Models\objectT::class, $to_request);
+            $data = $eventPut->post('haldus_projectpartner_ee', \App\Models\objectT::class, $to_request);
 
             return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
         });

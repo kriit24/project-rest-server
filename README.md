@@ -11,7 +11,7 @@ composer require kriit24/project-rest-server
 #### # install package migrations
 
 ```
-php artisan project-rest-serve:install
+php artisan project-rest-server:install
 ```
 
 ## Client for server  

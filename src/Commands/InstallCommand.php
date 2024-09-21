@@ -14,14 +14,14 @@ class InstallCommand extends Command
      *
      * @var string
      */
-    protected $name = 'project-rest-serve:install';
+    protected $name = 'project-rest-server:install';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Install Project REST Serve package';
+    protected $description = 'Install Project REST Server package';
 
     /**
      * The Composer instance.

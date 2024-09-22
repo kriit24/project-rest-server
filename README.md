@@ -27,6 +27,6 @@ If u use json_encode to compile data then allways use it with option JSON_UNESCA
 ## DOCS
 
 
-#### [config](https://github.com/kriit24/project-rest-server/docs/config)
-#### [relationship](https://github.com/kriit24/project-rest-server/docs/relationship)
-#### [usage](https://github.com/kriit24/project-rest-server/usage)
+#### [config](https://github.com/kriit24/project-rest-server/tree/master/docs/config)
+#### [relationship](https://github.com/kriit24/project-rest-server/tree/master/docs/relationship)
+#### [usage](https://github.com/kriit24/project-rest-server/tree/master/docs/usage)

@@ -3,12 +3,12 @@ Project Rest Server is REST-api server for mysql
 Its based on Laravel 9+ framework
 
 ## Installation
-#### # install from composer
+#### # download from packagist
 ```
 composer require kriit24/project-rest-server
 ```
 
-#### # install package migrations
+#### # install package
 
 ```
 php artisan project-rest-server:install

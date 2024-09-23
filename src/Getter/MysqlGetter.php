@@ -15,7 +15,7 @@ class MysqlGetter
     public function trigger($payload, $request)
     {
         $data = $payload['message'];
-        if (isset($data['join']) && $data['join'] && !$data['with']) $data['with'] = $data['join'];
+        if (isset($data['join']) && $data['join'] && !isset($data['with'])) $data['with'] = $data['join'];
 
         $class = \Project\RestServer\Config::model($payload['model']);
 

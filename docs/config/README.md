@@ -1,5 +1,13 @@
 ## [<<<](https://github.com/kriit24/project-rest-server/) Config
 
+
+#### # NB!!! dynamic request MAC
+
+MAC is to prevent attacks if UUID and TOKEN fall into someone's hands, what can happen between human machine communication.  
+For POST request MAC is generated from body, for GET request MAC is generated from full request uri without domain, mac, uuid and token.
+The contents of all requests are protected by the MAC key if project.hash.key is provided.  
+It is not necessary to use the MAC key in API requests, but it is always possible to check there as well.
+
 #### # create file config/project.php
 
 ```

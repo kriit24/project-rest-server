@@ -16,7 +16,7 @@ class VerifyGetMac
      */
     public function handle($request, Closure $next, $guard = null)
     {
-        if( $request->get('mac') ){
+        if ($request->get('mac')) {
 
             $server = $_SERVER;
             $server['http_uuid'] = $request->get('uuid');
@@ -25,18 +25,26 @@ class VerifyGetMac
 
             $request = new \Illuminate\Http\Request(
                 server: $server,
-                request: [
-                    'query' => urldecode($request->get('query'))
-                ]
+                request: $request->except(['uuid', 'token', 'mac'])
             );
         }
 
         $SERVER_REQUEST_HEADERS = $request->server();
         $headers = array_change_key_case($SERVER_REQUEST_HEADERS, CASE_LOWER);
-        $query_string = urldecode($request->get('query', ''));
+        $url = parse_url($request->getRequestUri());
+        parse_str($url['query'], $query);
+
+        if (isset($query['uuid'])) unset($query['uuid']);
+        if (isset($query['token'])) unset($query['token']);
+        if (isset($query['mac'])) unset($query['mac']);
+
+        $full_url = rtrim($request->path(), '/') . (!empty($query) ? '?' : '') . http_build_query($query);
+
+        //$query_string = urldecode($request->get('query', ''));
+        $query_string = urldecode($full_url);
         $http_mac = isset($headers['http_mac']) ? $headers['http_mac'] : null;
 
-        if( !config('project.hash.key') ){
+        if (!config('project.hash.key')) {
 
             return $next($request);
         }

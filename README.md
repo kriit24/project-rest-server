@@ -23,6 +23,24 @@ All the dynamic requests are POST methods because GET queries can distort data l
 If u use json_encode to compile data then allways use it with option JSON_UNESCAPED_UNICODE
 
 
+## EASY TO USE
+
+```
+//API request
+Route::get('/object/{object_id?}', function (Request $request, $object_id = null) {    
+
+    $to_request = \Project\RestServer\Http\Requests\ToRequest::Get();
+    $to_request->request->add(['with' => ['address']]);
+    $to_request->request->add(['where' => array_filter(['object_id' => $object_id])]);    
+    
+    $event = new Project\RestServer\Broadcasting\DBBroadcast(
+        Project\RestServer\Getter\MysqlGetter::class
+    );
+    $data = $event->fetch('channel_name', \App\Models\objectT::class, $to_request);
+    return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
+});
+```
+
 
 ## DOCS
 

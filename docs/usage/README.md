@@ -22,6 +22,8 @@ live/localhost_1/object/?full=false&query={"column":null,"with":["address"],"use
  ```
 
 #### # DYNAMIC routes for react native
+#### NB! All the dynamic requests are POST methods because GET queries can distort data like umlauts and other special characters  
+If u use json_encode to compile data then allways use it with option JSON_UNESCAPED_UNICODE
 
 ```
 Route::middleware([\App\Http\Middleware\AuthenticateOnceWithBasicAuth::class, Project\RestServer\Http\Middleware\VerifyPostMac::class])->group(function () {
@@ -191,7 +193,7 @@ Route::middleware([\App\Http\Middleware\Authenticate::class])->group(function ()
 
 ```
 
-#### # LIVE routes
+#### # LIVE (event-stream) routes
 ```
 Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\Http\Middleware\VerifyGetMac::class])->group(function () {
 

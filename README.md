@@ -18,11 +18,6 @@ php artisan project-rest-server:install
 #### react-native: [project-rest-client](https://www.npmjs.com/package/project-rest-client)
 
 
-## NB!  
-All the dynamic requests are POST methods because GET queries can distort data like umlauts and other special characters  
-If u use json_encode to compile data then allways use it with option JSON_UNESCAPED_UNICODE
-
-
 ## EASY TO USE
 
 ```

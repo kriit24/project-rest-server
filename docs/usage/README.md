@@ -21,6 +21,28 @@ full=false&uuid=KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg&token=92ff8dcf2223508fe3c1228ac39
 live/localhost_1/object/?full=false&query={"column":null,"with":["address"],"use":null,"where":null,"group":null,"order":null,"limit":10,"offset":0}
  ```
 
+
+#### # Models table, primaryKey and fillable is required
+
+```
+
+namespace App\Models;
+
+class User
+{
+    protected $table = 'users';
+
+    protected $primaryKey = 'id';
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+}
+
+ ```
+
 #### # DYNAMIC routes for react native
 #### NB! All the dynamic requests are POST methods because GET queries can distort data like umlauts and other special characters  
 If u use json_encode to compile data then allways use it with option JSON_UNESCAPED_UNICODE

@@ -217,7 +217,7 @@ Route::middleware([\App\Http\Middleware\Authenticate::class])->group(function ()
 
 #### # LIVE (event-stream) routes
 ```
-Route::middleware([\App\Http\Middleware\Authenticate::class, Project\RestServer\Http\Middleware\VerifyGetMac::class])->group(function () {
+Route::middleware([\App\Http\Middleware\Authenticate::class/*, Project\RestServer\Http\Middleware\VerifyGetMac::class*/])->group(function () {
 
     Route::get('/live/{db}/{model}', function ($db, $model, Request $request) {
 

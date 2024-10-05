@@ -21,8 +21,8 @@ php artisan project-rest-server:install
 ## EASY TO USE
 
 ```
-//API request
-Route::get('/object/{object_id?}', function (Request $request, $object_id = null) {    
+//API dynamic request
+Route::get('/fetch/{model_name}/{object_id?}', function (Request $request, $model, $object_id = null) {    
 
     $to_request = \Project\RestServer\Http\Requests\ToRequest::Get();
     $to_request->request->add(['with' => ['address']]);
@@ -31,9 +31,13 @@ Route::get('/object/{object_id?}', function (Request $request, $object_id = null
     $event = new Project\RestServer\Broadcasting\DBBroadcast(
         Project\RestServer\Getter\MysqlGetter::class
     );
-    $data = $event->fetch('channel_name', \App\Models\objectT::class, $to_request);
+    $data = $event->fetch('channel_name', $model, $to_request);
     return response(['status' => 'ok', 'count' => count($data), 'data' => $data]);
 });
+//https://localhost/fetch/object
+//https://localhost/fetch/address
+//https://localhost/fetch/client
+//...
 ```
 
 

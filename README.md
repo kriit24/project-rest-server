@@ -22,11 +22,12 @@ php artisan project-rest-server:install
 
 ```
 //API dynamic request
-Route::get('/fetch/{model_name}/{object_id?}', function (Request $request, $model, $object_id = null) {    
+Route::get('/fetch/{model_name}/{id?}', function (Request $request, $model, $id = null) {
+
+    $primary_key = app("App\\Models\\" . $modelName)->getKeyName();    
 
     $to_request = \Project\RestServer\Http\Requests\ToRequest::Get();
-    $to_request->request->add(['with' => ['address']]);
-    $to_request->request->add(['where' => array_filter(['object_id' => $object_id])]);    
+    $to_request->request->add(['where' => array_filter([$primary_key => $id])]);    
     
     $event = new Project\RestServer\Broadcasting\DBBroadcast(
         Project\RestServer\Getter\MysqlGetter::class

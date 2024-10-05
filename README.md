@@ -24,7 +24,7 @@ php artisan project-rest-server:install
 //API dynamic request
 Route::get('/fetch/{model_name}/{id?}', function (Request $request, $model, $id = null) {
 
-    $primary_key = app("App\\Models\\" . $modelName)->getKeyName();    
+    $primary_key = app("App\\Models\\" . $model)->getKeyName();    
 
     $to_request = \Project\RestServer\Http\Requests\ToRequest::Get();
     $to_request->request->add(['where' => array_filter([$primary_key => $id])]);    

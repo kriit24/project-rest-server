@@ -17,8 +17,8 @@ config(['project.hash.key' => $user_key]);
 https://localhost/live/localhost_1/object?
 full=false&uuid=KgfMRZG3GWG9hRP7tHQz5qukD9T4Yg&token=92ff8dcf2223508fe3c1228ac39f5d68af9eb38ea274d90f87d9262e25c9e2e8d78eb595083ff69dc7a80acd16494b68b7a85e220b6596cba0dfac5e4ff373b9&mac=MjdmN2M3NThkZTk2Njk0MTkxMDE5YmU5MjFjYjIxOWI2ZmFlM2FiZmI0MTA4ZWQzYWY5YjFlMjQ4ZTMxNmJlZmRmMDRjMzVmYWMwYThlNDJjMGUxOGFhYTNiNjQ3OTk3&query=%7B%22column%22%3Anull%2C%22with%22%3A%5B%22address%22%5D%2C%22use%22%3Anull%2C%22where%22%3Anull%2C%22group%22%3Anull%2C%22order%22%3Anull%2C%22limit%22%3A10%2C%22offset%22%3A0%7D
 
-//MAC generated from url decoded request uri what does not include domain, uuid, token and mac ...
-live/localhost_1/object/?full=false&query={"column":null,"with":["address"],"use":null,"where":null,"group":null,"order":null,"limit":10,"offset":0}
+//MAC generated from url decoded request uri what does not include uuid, token and mac ...
+https://localhost/live/localhost_1/object/?full=false&query={"column":null,"with":["address"],"use":null,"where":null,"group":null,"order":null,"limit":10,"offset":0}
  ```
 
 

@@ -2,7 +2,7 @@
     "name": "kriit24/project-rest-server",
     "description": "Laravel REST API server what based on database models and routing, no controller or other coding is needed",
     "keywords": ["laravel","rest-api","rest-api server", "rest api", "laravel rest api"],
-    "version": "v1.2.4",
+    "version": "v1.2.5",
     "type": "library",
     "license": "MIT",
     "autoload": {

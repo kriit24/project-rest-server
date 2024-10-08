@@ -38,7 +38,7 @@ class VerifyGetMac
         if (isset($query['token'])) unset($query['token']);
         if (isset($query['mac'])) unset($query['mac']);
 
-        $full_url = rtrim($request->path(), '/') . (!empty($query) ? '?' : '') . http_build_query($query);
+        $full_url = rtrim($request->root(), '/') . '/' . rtrim($request->path(), '/') . (!empty($query) ? '?' : '') . http_build_query($query);
 
         //$query_string = urldecode($request->get('query', ''));
         $query_string = urldecode($full_url);

@@ -26,7 +26,7 @@ class MysqlGetter
         if (!$table) return [];
 
         $main = (new $class())->setConnection($payload['db']);
-        $relationShipColumns = self::select($main, $data);
+        [$main, $relationShipColumns] = self::select($main, $data);
 
         //die(pre($payload));
         if (isset($data['use'])) {
@@ -118,10 +118,10 @@ class MysqlGetter
 
             if (!empty($data['column'])) {
 
-                $main->select($data['column']);
+                $main = $main->select($data['column']);
             }
         }
 
-        return $relationShipColumns;
+        return [$main, $relationShipColumns];
     }
 }

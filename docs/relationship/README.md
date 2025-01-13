@@ -20,9 +20,10 @@ use App\Models\address;
 
 class AddressAfterInsert extends address
 {
-    public function __construct($bindings, $tableData)
+    public function __construct($bindings)
     {
-        new \Project\RestServer\Models\Events\TableRelation($this->getTable(), $this->getKeyName(), $bindings, $tableData);
+        $data = request()->all();
+        new \Project\RestServer\Models\Events\TableRelation($this->getTable(), $this->getKeyName(), $data, $bindings);
     }
 }
 ```
@@ -47,12 +48,12 @@ class ObjectBeforeInsert
 {
     public function __construct(&$bindings)
     {
-        if (isset($bindings['table_relation_unique_id'])) {
+        $data = request()->all();
+        if (isset($data['table_relation_unique_id'])) {
 
-            $relation = \Project\RestServer\Models\Events\TableRelation::fetch($bindings['table_relation_unique_id']);
-            if( !empty($relation) ) {
-                
-                //die(pre($relation));
+            $relation = \Project\RestServer\Models\Events\TableRelation::fetch($bindings, $data['table_relation_unique_id']);
+            if (!empty($relation)) {
+
                 $bindings['object_address_id'] = $relation->table_relation_table_id;
             }
         }
